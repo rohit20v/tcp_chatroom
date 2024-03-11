@@ -57,7 +57,6 @@ public class ClientHandler implements Runnable {
             client.writer.println(username + ": " + message);
         }
     }
-
     private void removeClient() {
         try {
             clientSocket.close();
