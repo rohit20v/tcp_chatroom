@@ -42,6 +42,7 @@ public class Client_GUI extends JFrame {
         setSize(420, 569);
         setVisible(true);
 
+        setLocationRelativeTo(null);
         createSocket();
         createReader_Writer();
 
@@ -80,10 +81,11 @@ public class Client_GUI extends JFrame {
         } else this.statusLbl.setText("Server is down");
     }
 
-    public void setUsername(){
+    public void setUsername() {
         usernameBtn.addActionListener(e -> {
             username = usernameTxt.getText();
-            if (username != null && !username.isEmpty()) {
+            username = username.replace(" ", "_").trim();
+            if (!username.isEmpty()) {
                 System.out.println(username);
                 writer.println(username.toUpperCase());
                 this.msgsArea.setEnabled(true);
@@ -95,7 +97,7 @@ public class Client_GUI extends JFrame {
         });
     }
 
-    public void sendMsg(){
+    public void sendMsg() {
         sendBtn.addActionListener(e -> {
             String msgToSend = msgTxt.getText().trim();
             if (!msgToSend.isEmpty()) {
@@ -105,16 +107,16 @@ public class Client_GUI extends JFrame {
         });
     }
 
-    public void readMsg(){
+    public void readMsg() {
         new Thread(() -> {
             try {
                 while (true) {
                     String receivedMessage = reader.readLine();
                     if (receivedMessage != null && !receivedMessage.isEmpty()) {
-                        if(receivedMessage.endsWith("jpg")){
+                        if (receivedMessage.endsWith("jpg")) {
                             System.out.println("Got " + receivedMessage.substring(7));
                             getImage(receivedMessage);
-                        }else msgsArea.append(receivedMessage + "\n");
+                        } else msgsArea.append(receivedMessage + "\n");
                     }
                 }
             } catch (Exception e) {
@@ -124,15 +126,15 @@ public class Client_GUI extends JFrame {
         }).start();
     }
 
-    public void getImage(String imgPath){
+    public void getImage(String imgPath) {
         try {
-            File imageFile = new File(imgPath.substring(7));
+            File imageFile = new File(imgPath.substring(imgPath.indexOf(" ")).trim());
             if (imageFile.exists()) {
                 System.out.println("EXISTS");
                 BufferedImage image = ImageIO.read(imageFile);
                 ImageIcon icon = new ImageIcon(new ImageIcon(image).getImage().getScaledInstance(242, 269, Image.SCALE_DEFAULT));
-                JOptionPane.showMessageDialog(this, new JLabel (icon));
-            }else System.out.println("Doesnt exist");
+                JOptionPane.showMessageDialog(this, new JLabel(icon));
+            } else System.out.println("Doesnt exist");
         } catch (IOException e) {
             System.err.println("Error reading image: " + e.getMessage());
         }
