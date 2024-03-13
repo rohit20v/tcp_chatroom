@@ -64,7 +64,7 @@
                 <properties/>
                 <border type="none"/>
                 <children>
-                  <component id="172d" class="javax.swing.JTextArea" binding="msgsArea">
+                  <component id="172d" class="javax.swing.JTextArea" binding="msgArea">
                     <constraints/>
                     <properties>
                       <editable value="true"/>

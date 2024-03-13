@@ -14,7 +14,7 @@ public class Client_GUI extends JFrame {
     private JPanel chatOptions;
     private JPanel chatArea;
     private JLabel groupName;
-    private JTextArea msgsArea;
+    private JTextArea msgArea;
     private JTextField msgTxt;
     private JButton sendBtn;
     private JButton leaveBtn;
@@ -32,9 +32,9 @@ public class Client_GUI extends JFrame {
         Form.setBackground(Color.lightGray);
         chatOptions.setBorder(new EmptyBorder(10, 10, 10, 10));
         chatArea.setBorder(new EmptyBorder(10, 10, 10, 10));
-        msgsArea.setBackground(Color.white);
-        msgsArea.setEditable(false);
-        msgsArea.setEnabled(false);
+        msgArea.setBackground(Color.white);
+        msgArea.setEditable(false);
+        msgArea.setEnabled(false);
         msgTxt.setEnabled(false);
         sendBtn.setEnabled(false);
         usernameBtn.setEnabled(false);
@@ -88,7 +88,7 @@ public class Client_GUI extends JFrame {
             if (!username.isEmpty()) {
                 System.out.println(username);
                 writer.println(username.toUpperCase());
-                this.msgsArea.setEnabled(true);
+                this.msgArea.setEnabled(true);
                 this.msgTxt.setEnabled(true);
                 this.sendBtn.setEnabled(true);
                 this.usernameBtn.setEnabled(false);
@@ -116,7 +116,7 @@ public class Client_GUI extends JFrame {
                         if (receivedMessage.endsWith("jpg")) {
                             System.out.println("Got " + receivedMessage.substring(7));
                             getImage(receivedMessage);
-                        } else msgsArea.append(receivedMessage + "\n");
+                        } else msgArea.append(receivedMessage + "\n");
                     }
                 }
             } catch (Exception e) {
