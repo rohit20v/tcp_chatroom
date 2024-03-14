@@ -1,4 +1,4 @@
-package org.chatroom;
+package org.chatroom.Client;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -21,53 +21,76 @@ public class Client_GUI extends JFrame {
     private JLabel statusLbl;
     private JTextField usernameTxt;
     private JButton usernameBtn;
+    private JTextField createGrpNameTxt;
+    private JButton askCreateBtn;
+    private JButton askJoinBtn;
+    private JTextField joinGrpNameTxt;
+    private JButton createBtn;
+    private JButton joinBtn;
+    private JTextField createGrpCodeTxt;
+    private JTextField joinGrpCodeTxt;
+    private JButton showGrpsBtn;
     private BufferedReader reader;
     private PrintWriter writer;
     private Socket socket;
     private String username;
+    private String groups;
 
     public Client_GUI() {
         setContentPane(Form);
         Form.setBorder(new EmptyBorder(10, 10, 10, 10));
-        Form.setBackground(Color.lightGray);
+        Form.setBackground(Color.decode("#0F1035"));
         chatOptions.setBorder(new EmptyBorder(10, 10, 10, 10));
         chatArea.setBorder(new EmptyBorder(10, 10, 10, 10));
-        msgArea.setBackground(Color.white);
+//        msgArea.setBackground(Color.decode("#FFFFF"));
         msgArea.setEditable(false);
-        msgArea.setEnabled(false);
         msgTxt.setEnabled(false);
         sendBtn.setEnabled(false);
         usernameBtn.setEnabled(false);
+
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setSize(420, 569);
+        setSize(888, 690);
         setVisible(true);
 
         setLocationRelativeTo(null);
-        createSocket();
-        createReader_Writer();
 
-        JOptionPane.showMessageDialog(this, "Enter username");
+        this.socket = createSocket();
+        if (socket != null && socket.isConnected()) {
+            createReader_Writer();
 
-        setUsername();
+            startCreatingGroup();
+            startJoiningGroup();
 
-        sendMsg();
+            createGroup();
+            joinGroup();
 
-        readMsg();
+            showGroups();
 
-        leaveChat();
+            setUsername();
+
+            sendMsg();
+
+            readMsg();
+
+            leaveChat();
+
+        }
+
     }
 
-    public void createSocket() {
+    public Socket createSocket() {
+        Socket clientSocket = null;
         try {
-            this.socket = new Socket("localhost", 5555);
+            clientSocket = new Socket("localhost", 5555);
             this.statusLbl.setForeground(Color.GREEN);
             this.statusLbl.setText("Connected");
             usernameBtn.setEnabled(true);
 
         } catch (Exception e) {
             this.statusLbl.setForeground(Color.red);
-            this.statusLbl.setText("Error creating socket");
+            this.statusLbl.setText("Server is down");
         }
+        return clientSocket;
     }
 
     public void createReader_Writer() {
@@ -88,7 +111,6 @@ public class Client_GUI extends JFrame {
             if (!username.isEmpty()) {
                 System.out.println(username);
                 writer.println(username.toUpperCase());
-                this.msgArea.setEnabled(true);
                 this.msgTxt.setEnabled(true);
                 this.sendBtn.setEnabled(true);
                 this.usernameBtn.setEnabled(false);
@@ -113,8 +135,8 @@ public class Client_GUI extends JFrame {
                 while (true) {
                     String receivedMessage = reader.readLine();
                     if (receivedMessage != null && !receivedMessage.isEmpty()) {
-                        if (receivedMessage.endsWith("jpg")) {
-                            System.out.println("Got " + receivedMessage.substring(7));
+                        if (receivedMessage.endsWith("jpg") || receivedMessage.endsWith("png")) {
+                            System.out.println("Got " + receivedMessage);
                             getImage(receivedMessage);
                         } else msgArea.append(receivedMessage + "\n");
                     }
@@ -139,6 +161,82 @@ public class Client_GUI extends JFrame {
             System.err.println("Error reading image: " + e.getMessage());
         }
     }
+
+    public void startCreatingGroup() {
+        askCreateBtn.addActionListener(e -> {
+            writer.println("1");
+            askJoinBtn.setEnabled(false);
+            askCreateBtn.setEnabled(false);
+            createGrpNameTxt.setEnabled(true);
+            createGrpCodeTxt.setEnabled(true);
+            createBtn.setEnabled(true);
+        });
+    }
+
+    public void createGroup() {
+        createBtn.addActionListener(e -> {
+            new Thread(() -> {
+                if (createBtn.isEnabled()) {
+                    if (!createGrpCodeTxt.getText().isEmpty() && !createGrpNameTxt.getText().isEmpty()) {
+                        this.writer.println(createGrpNameTxt.getText());
+                        this.writer.println(createGrpCodeTxt.getText());
+                        createGrpNameTxt.setText("");
+                        createGrpCodeTxt.setText("");
+                        createGrpNameTxt.setEnabled(false);
+                        createGrpCodeTxt.setEnabled(false);
+                        createBtn.setEnabled(false);
+                        JOptionPane.showMessageDialog(this, "Enter username");
+
+                    }
+                }
+            }).start();
+        });
+    }
+
+    public void startJoiningGroup() {
+        askJoinBtn.addActionListener(e -> {
+            this.writer.println("2");
+            askCreateBtn.setEnabled(false);
+            askJoinBtn.setEnabled(false);
+            joinGrpNameTxt.setEnabled(true);
+            joinGrpCodeTxt.setEnabled(true);
+            joinBtn.setEnabled(true);
+        });
+    }
+
+    public void joinGroup() {
+        joinBtn.addActionListener(e -> {
+            new Thread(() -> {
+                if (joinBtn.isEnabled()) {
+                    if (!joinGrpCodeTxt.getText().isEmpty() && !joinGrpNameTxt.getText().isEmpty()) {
+                        this.writer.println(joinGrpNameTxt.getText());
+                        this.writer.println(joinGrpCodeTxt.getText());
+                        joinGrpNameTxt.setText("");
+                        joinGrpCodeTxt.setText("");
+                        joinGrpNameTxt.setEnabled(false);
+                        joinGrpCodeTxt.setEnabled(false);
+                        joinBtn.setEnabled(false);
+                    }
+                }
+            }).start();
+        });
+    }
+
+
+    public void showGroups() {
+        showGrpsBtn.addActionListener(e -> {
+            this.writer.println("3");
+            new Thread(() -> {
+                try {
+                    groups = this.reader.readLine();
+                    JOptionPane.showMessageDialog(null, groups);
+                } catch (Exception ex) {
+                    System.err.println(ex.getMessage() + "\nLine: 175 ");
+                }
+            }).start();
+        });
+    }
+
     public void leaveChat() {
         leaveBtn.addActionListener(e -> {
             dispose();

@@ -1,0 +1,8 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="tcp_chatroom:jar">
+    <output-path>$USER_HOME$/Downloads</output-path>
+    <root id="archive" name="tcp_chatroom.jar">
+      <element id="module-output" name="tcp_chatroom" />
+    </root>
+  </artifact>
+</component>
