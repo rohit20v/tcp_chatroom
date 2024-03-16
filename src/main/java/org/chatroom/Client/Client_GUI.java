@@ -10,6 +10,8 @@ import java.net.Socket;
 
 
 public class Client_GUI extends JFrame {
+    private String host = "localhost";
+    private int port = 5555;
     private JPanel Form;
     private JPanel chatOptions;
     private JPanel chatArea;
@@ -30,9 +32,10 @@ public class Client_GUI extends JFrame {
     private JTextField createGrpCodeTxt;
     private JTextField joinGrpCodeTxt;
     private JButton showGrpsBtn;
+    private JLabel gc_name;
     private BufferedReader reader;
     private PrintWriter writer;
-    private Socket socket;
+    private final Socket socket;
     private String username;
     private String groups;
 
@@ -40,7 +43,7 @@ public class Client_GUI extends JFrame {
         setContentPane(Form);
         Form.setBorder(new EmptyBorder(10, 10, 10, 10));
         Form.setBackground(Color.decode("#0F1035"));
-        chatOptions.setBorder(new EmptyBorder(10, 10, 10, 10));
+        chatOptions.setBorder(new EmptyBorder(20, 10, 10, 10));
         chatArea.setBorder(new EmptyBorder(10, 10, 10, 10));
 //        msgArea.setBackground(Color.decode("#FFFFF"));
         msgArea.setEditable(false);
@@ -84,7 +87,6 @@ public class Client_GUI extends JFrame {
             clientSocket = new Socket("localhost", 5555);
             this.statusLbl.setForeground(Color.GREEN);
             this.statusLbl.setText("Connected");
-            usernameBtn.setEnabled(true);
 
         } catch (Exception e) {
             this.statusLbl.setForeground(Color.red);
@@ -186,6 +188,8 @@ public class Client_GUI extends JFrame {
                         createGrpCodeTxt.setEnabled(false);
                         createBtn.setEnabled(false);
                         JOptionPane.showMessageDialog(this, "Enter username");
+                        usernameBtn.setEnabled(true);
+
 
                     }
                 }
@@ -216,6 +220,7 @@ public class Client_GUI extends JFrame {
                         joinGrpNameTxt.setEnabled(false);
                         joinGrpCodeTxt.setEnabled(false);
                         joinBtn.setEnabled(false);
+                        usernameBtn.setEnabled(true);
                     }
                 }
             }).start();
@@ -239,6 +244,7 @@ public class Client_GUI extends JFrame {
 
     public void leaveChat() {
         leaveBtn.addActionListener(e -> {
+            this.writer.println("/quit");
             dispose();
             SwingUtilities.invokeLater(Client_GUI::new);
         });
