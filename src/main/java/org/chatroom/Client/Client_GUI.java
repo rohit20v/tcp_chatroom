@@ -238,6 +238,7 @@ public class Client_GUI extends JFrame {
     }
 
     public void leaveChat() {
+        //TODO: broadcastToGroup(groupName, nickname + " ha lasciato il gruppo");
         leaveBtn.addActionListener(e -> {
             dispose();
             SwingUtilities.invokeLater(Client_GUI::new);
