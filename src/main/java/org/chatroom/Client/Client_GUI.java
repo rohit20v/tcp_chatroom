@@ -243,6 +243,7 @@ public class Client_GUI extends JFrame {
     }
 
     public void leaveChat() {
+        //TODO: broadcastToGroup(groupName, nickname + " ha lasciato il gruppo");
         leaveBtn.addActionListener(e -> {
             this.writer.println("/quit");
             dispose();
