@@ -37,7 +37,7 @@ Avviare l'applicazione client.
 
 >*java Client*
 
-Eseguire la propria scelta e successivamente inserire un username per entrare dentro ad un gruppo.
+Eseguire la propria scelta e successivamente inserire un username per entrare dentro a un gruppo.
 
 ## Funzionalità
 
