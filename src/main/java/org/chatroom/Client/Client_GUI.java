@@ -223,6 +223,7 @@ public class Client_GUI extends JFrame {
                     joinGrpCodeTxt.setEnabled(true);
                     joinBtn.setEnabled(true);
                     joinGroup();
+                    showGrpsBtn.setEnabled(false);
                 }
             }).start();
         });
