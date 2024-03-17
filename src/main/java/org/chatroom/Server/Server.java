@@ -48,11 +48,11 @@ public class Server implements Runnable {
 
 
     // Aggiunto un metodo per ottenere la lista di connessioni di un gruppo specifico
-    public List<ConnectionHandler> getGroupConnections(String groupName) {
+    public synchronized List<ConnectionHandler> getGroupConnections(String groupName) {
         return groupConnections.getOrDefault(groupName, new ArrayList<>());
     }
     // Aggiunto un metodo per inviare un messaggio a un gruppo specifico
-    public void broadcastToGroup(String groupName, String message) {
+    public synchronized void broadcastToGroup(String groupName, String message) {
         List<ConnectionHandler> connections = getGroupConnections(groupName);
         for (ConnectionHandler ch : connections) {
             ch.sendMessage(message);
@@ -182,6 +182,7 @@ public class Server implements Runnable {
 
                 //out.println("Inserisci il tuo nickname:");
                 nickname = in.readLine();
+                if (nickname.equalsIgnoreCase("/quit") || nickname.equalsIgnoreCase("/nome")) shutdown();
                 System.out.println(nickname + " Connesso!");
 
                 broadcastToGroup(groupName, nickname + " è entrato nel gruppo");
