@@ -78,7 +78,7 @@ public class Server implements Runnable {
             writer.println("Non ci sono gruppi attivi al momento.");
         } else {
             System.out.println("Gruppi attivi:");
-            int i = 1;
+            int i = 0;
             for (String groupName : groupConnections.keySet()) {
                 String password = groupPasswords.get(groupName);
                 i++;
@@ -134,13 +134,13 @@ public class Server implements Runnable {
                     String groupName = in.readLine();
 
                     if (!groupPasswords.containsKey(groupName)) {
-                        out.println("Il gruppo con questo nome non esiste. Riprova.");
+                        out.println("Il gruppo con questo nome non esiste. Riprova premendo il pulsante LEAVE.");
                     } else {
                         //out.println("Inserisci la password del gruppo:");
                         String password = in.readLine();
 
                         if (!password.equals(groupPasswords.get(groupName))) {
-                            out.println("Password errata. Riprova.");
+                            out.println("Password errata. Riprova premendo il pulsante LEAVE.");
                         } else {
                             groupConnections.putIfAbsent(groupName, new ArrayList<>());
                             groupConnections.get(groupName).add(this);
@@ -184,7 +184,6 @@ public class Server implements Runnable {
                 nickname = in.readLine();
                 if (nickname.equalsIgnoreCase("/quit") || nickname.equalsIgnoreCase("/nome")) shutdown();
                 System.out.println(nickname + " Connesso!");
-
                 broadcastToGroup(groupName, nickname + " è entrato nel gruppo");
 
                 String message;
