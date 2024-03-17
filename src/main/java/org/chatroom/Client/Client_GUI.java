@@ -7,7 +7,7 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.*;
 import java.net.Socket;
-
+import java.util.concurrent.atomic.AtomicReference;
 
 public class Client_GUI extends JFrame {
     private String host = "localhost";
@@ -37,7 +37,9 @@ public class Client_GUI extends JFrame {
     private PrintWriter writer;
     private final Socket socket;
     private String username;
-    private String groups;
+    private boolean inGroup = false;
+    AtomicReference<String> receivedMessage = new AtomicReference<>("");
+
 
     public Client_GUI() {
         setContentPane(Form);
@@ -63,9 +65,9 @@ public class Client_GUI extends JFrame {
 
             startCreatingGroup();
             startJoiningGroup();
-
-            createGroup();
-            joinGroup();
+//
+//            createGroup();
+//            joinGroup();
 
             showGroups();
 
@@ -78,24 +80,26 @@ public class Client_GUI extends JFrame {
             leaveChat();
 
         }
-
     }
 
     public Socket createSocket() {
         Socket clientSocket = null;
         try {
             clientSocket = new Socket("localhost", 5555);
-            this.statusLbl.setForeground(Color.GREEN);
-            this.statusLbl.setText("Connected");
+            updateStatus(Color.GREEN, "Connected");
 
         } catch (Exception e) {
-            this.statusLbl.setForeground(Color.red);
-            this.statusLbl.setText("Server is down");
+            updateStatus(Color.red, "Server is down");
         }
         return clientSocket;
     }
 
-    public void createReader_Writer() {
+    private void updateStatus(Color green, String Connected) {
+        this.statusLbl.setForeground(green);
+        this.statusLbl.setText(Connected);
+    }
+
+    private void createReader_Writer() {
         if (this.socket != null) {
             try {
                 this.reader = new BufferedReader(new InputStreamReader(this.socket.getInputStream()));
@@ -106,7 +110,7 @@ public class Client_GUI extends JFrame {
         } else this.statusLbl.setText("Server is down");
     }
 
-    public void setUsername() {
+    private void setUsername() {
         usernameBtn.addActionListener(e -> {
             username = usernameTxt.getText();
             username = username.replace(" ", "_").trim();
@@ -121,7 +125,7 @@ public class Client_GUI extends JFrame {
         });
     }
 
-    public void sendMsg() {
+    private void sendMsg() {
         sendBtn.addActionListener(e -> {
             String msgToSend = msgTxt.getText().trim();
             if (!msgToSend.isEmpty()) {
@@ -131,16 +135,22 @@ public class Client_GUI extends JFrame {
         });
     }
 
-    public void readMsg() {
+    private void readMsg() {
         new Thread(() -> {
             try {
                 while (true) {
-                    String receivedMessage = reader.readLine();
-                    if (receivedMessage != null && !receivedMessage.isEmpty()) {
-                        if (receivedMessage.endsWith("jpg") || receivedMessage.endsWith("png")) {
+                    receivedMessage.set(reader.readLine());
+                    if (receivedMessage.get() != null && !receivedMessage.get().isEmpty()) {
+                        if (receivedMessage.get().endsWith("jpg") || receivedMessage.get().endsWith("png")) {
                             System.out.println("Got " + receivedMessage);
-                            getImage(receivedMessage);
-                        } else msgArea.append(receivedMessage + "\n");
+                            getImage(receivedMessage.get());
+                        } else {
+                            System.out.println("Got " + receivedMessage);
+                            msgArea.append(receivedMessage + "\n");
+                        }
+//                        else {
+//                            JOptionPane.showMessageDialog(null, receivedMessage);
+//                        }
                     }
                 }
             } catch (Exception e) {
@@ -150,7 +160,7 @@ public class Client_GUI extends JFrame {
         }).start();
     }
 
-    public void getImage(String imgPath) {
+    private void getImage(String imgPath) {
         try {
             File imageFile = new File(imgPath.substring(imgPath.indexOf(" ")).trim());
             if (imageFile.exists()) {
@@ -164,7 +174,7 @@ public class Client_GUI extends JFrame {
         }
     }
 
-    public void startCreatingGroup() {
+    private void startCreatingGroup() {
         askCreateBtn.addActionListener(e -> {
             writer.println("1");
             askJoinBtn.setEnabled(false);
@@ -172,69 +182,78 @@ public class Client_GUI extends JFrame {
             createGrpNameTxt.setEnabled(true);
             createGrpCodeTxt.setEnabled(true);
             createBtn.setEnabled(true);
+            showGrpsBtn.setEnabled(false);
+            createGroup();
         });
     }
 
-    public void createGroup() {
+    private void createGroup() {
         createBtn.addActionListener(e -> {
-            new Thread(() -> {
-                if (createBtn.isEnabled()) {
-                    if (!createGrpCodeTxt.getText().isEmpty() && !createGrpNameTxt.getText().isEmpty()) {
-                        this.writer.println(createGrpNameTxt.getText());
-                        this.writer.println(createGrpCodeTxt.getText());
-                        createGrpNameTxt.setText("");
-                        createGrpCodeTxt.setText("");
-                        createGrpNameTxt.setEnabled(false);
-                        createGrpCodeTxt.setEnabled(false);
-                        createBtn.setEnabled(false);
-                        JOptionPane.showMessageDialog(this, "Enter username");
-                        usernameBtn.setEnabled(true);
-
-
-                    }
+            if (createBtn.isEnabled()) {
+                if (!createGrpCodeTxt.getText().isEmpty() && !createGrpNameTxt.getText().isEmpty()) {
+                    this.writer.println(createGrpNameTxt.getText());
+                    this.writer.println(createGrpCodeTxt.getText());
+                    groupName.setText(createGrpNameTxt.getText());
+                    createGrpNameTxt.setText("");
+                    createGrpCodeTxt.setText("");
+                    createGrpNameTxt.setEnabled(false);
+                    createGrpCodeTxt.setEnabled(false);
+                    createBtn.setEnabled(false);
+                    JOptionPane.showMessageDialog(this, "Enter username");
+                    usernameBtn.setEnabled(true);
                 }
-            }).start();
+            }
         });
     }
 
-    public void startJoiningGroup() {
+    private void startJoiningGroup() {
         askJoinBtn.addActionListener(e -> {
             this.writer.println("2");
-            askCreateBtn.setEnabled(false);
-            askJoinBtn.setEnabled(false);
-            joinGrpNameTxt.setEnabled(true);
-            joinGrpCodeTxt.setEnabled(true);
-            joinBtn.setEnabled(true);
-        });
-    }
-
-    public void joinGroup() {
-        joinBtn.addActionListener(e -> {
             new Thread(() -> {
-                if (joinBtn.isEnabled()) {
-                    if (!joinGrpCodeTxt.getText().isEmpty() && !joinGrpNameTxt.getText().isEmpty()) {
-                        this.writer.println(joinGrpNameTxt.getText());
-                        this.writer.println(joinGrpCodeTxt.getText());
-                        joinGrpNameTxt.setText("");
-                        joinGrpCodeTxt.setText("");
-                        joinGrpNameTxt.setEnabled(false);
-                        joinGrpCodeTxt.setEnabled(false);
-                        joinBtn.setEnabled(false);
-                        usernameBtn.setEnabled(true);
-                    }
+                String msg = "";
+                try {
+                    msg = receivedMessage.get();
+                } catch (Exception ex) {
+                    System.out.println(ex.getMessage());;
+                }
+                if (msg.equals("Inserisci il nome e la password del gruppo")) {
+                    askCreateBtn.setEnabled(false);
+                    askJoinBtn.setEnabled(false);
+                    joinGrpNameTxt.setEnabled(true);
+                    joinGrpCodeTxt.setEnabled(true);
+                    joinBtn.setEnabled(true);
+                    joinGroup();
                 }
             }).start();
         });
     }
 
+    private void joinGroup() {
+        joinBtn.addActionListener(e -> {
+            System.out.println("In join");
+            if (joinBtn.isEnabled()) {
+                if (!joinGrpCodeTxt.getText().isEmpty() && !joinGrpNameTxt.getText().isEmpty()) {
+                    this.writer.println(joinGrpNameTxt.getText());
+                    this.writer.println(joinGrpCodeTxt.getText());
+                    groupName.setText(joinGrpNameTxt.getText());
+                    joinGrpNameTxt.setText("");
+                    joinGrpCodeTxt.setText("");
+                    joinGrpNameTxt.setEnabled(false);
+                    joinGrpCodeTxt.setEnabled(false);
+                    joinBtn.setEnabled(false);
+                    usernameBtn.setEnabled(true);
+                }
+            }
+        });
+    }
 
-    public void showGroups() {
+
+    private void showGroups() {
         showGrpsBtn.addActionListener(e -> {
             this.writer.println("3");
             new Thread(() -> {
                 try {
-                    groups = this.reader.readLine();
-                    JOptionPane.showMessageDialog(null, groups);
+//                    JOptionPane.showMessageDialog(this, this.reader.readLine());
                 } catch (Exception ex) {
                     System.err.println(ex.getMessage() + "\nLine: 175 ");
                 }
@@ -242,8 +261,7 @@ public class Client_GUI extends JFrame {
         });
     }
 
-    public void leaveChat() {
-        //TODO: broadcastToGroup(groupName, nickname + " ha lasciato il gruppo");
+    private void leaveChat() {
         leaveBtn.addActionListener(e -> {
             this.writer.println("/quit");
             dispose();

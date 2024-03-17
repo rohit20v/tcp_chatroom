@@ -128,7 +128,7 @@ public class Server implements Runnable {
                 if (groupPasswords.isEmpty()) {
                     out.println("Non ci sono gruppi disponibili. Devi crearne uno nuovo.");
                     return;
-                }
+                }else out.println("Inserisci il nome e la password del gruppo");
                 while (!joined) {
                     //out.println("Inserisci il nome del gruppo a cui desideri unirti:");
                     String groupName = in.readLine();
