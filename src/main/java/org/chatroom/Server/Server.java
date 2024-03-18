@@ -71,7 +71,7 @@ public class Server implements Runnable {
         } catch (IOException e) {
             // ignore it
         }
-    }//TODO:funzione mostra gruppi
+    }
     public void showActiveGroups(PrintWriter writer) {
         if (groupConnections.isEmpty()) {
             System.out.println("Non ci sono gruppi attivi al momento.");
@@ -83,7 +83,7 @@ public class Server implements Runnable {
                 String password = groupPasswords.get(groupName);
                 i++;
                 System.out.println(i + ") " + groupName + " = " + password);
-                writer.println(i + ") " + groupName + " = " + password + " )\n");
+                writer.println(i + ") " + groupName + " = " + password + "\n");
             }
 //            writer.println(grp);
         }
