@@ -46,7 +46,6 @@ public class Server implements Runnable {
         }
     }
 
-
     // Aggiunto un metodo per ottenere la lista di connessioni di un gruppo specifico
     public synchronized List<ConnectionHandler> getGroupConnections(String groupName) {
         return groupConnections.getOrDefault(groupName, new ArrayList<>());
@@ -182,7 +181,7 @@ public class Server implements Runnable {
 
                 //out.println("Inserisci il tuo nickname:");
                 nickname = in.readLine();
-                if (nickname.equalsIgnoreCase("/quit") || nickname.equalsIgnoreCase("/nome")) shutdown();
+                if (nickname.equalsIgnoreCase("/quit") || nickname.equalsIgnoreCase("/nome") || nickname.equalsIgnoreCase("/info")) shutdown();
                 System.out.println(nickname + " Connesso!");
                 broadcastToGroup(groupName, nickname + " è entrato nel gruppo");
 
@@ -199,12 +198,27 @@ public class Server implements Runnable {
                         shutdown();
                         broadcastToGroup(groupName, nickname + " ha lasciato il gruppo");
 
-                    } else {
+                    } else if (message.startsWith("/info")){
+                        showGroupParticipants(groupName);
+                    }else {
                         broadcastToGroup(groupName, nickname + ": " + message);
                     }
                 }
             } catch (IOException e) {
                 shutdown();
+            }
+        }
+
+        // Metodo per mostrare i partecipanti al gruppo
+        private void showGroupParticipants(String groupName) {
+            List<ConnectionHandler> participants = getGroupConnections(groupName);
+            if (!participants.isEmpty()) {
+                out.println("Partecipanti al gruppo " + groupName + ":");
+                for (ConnectionHandler participant : participants) {
+                    out.println("- " + participant.nickname);
+                }
+            } else {
+                out.println("Nessun partecipante nel gruppo " + groupName);
             }
         }
 
