@@ -35,32 +35,33 @@ public class Client_GUI extends JFrame {
     private JLabel gc_name;
     private BufferedReader reader;
     private PrintWriter writer;
-    private final Socket socket;
+    private Socket socket;
     private String username;
     private boolean inGroup = false;
     AtomicReference<String> receivedMessage = new AtomicReference<>("");
 
 
     public Client_GUI() {
-        setContentPane(Form);
-        Form.setBorder(new EmptyBorder(10, 10, 10, 10));
-        Form.setBackground(Color.decode("#0F1035"));
-        chatOptions.setBorder(new EmptyBorder(20, 10, 10, 10));
-        chatArea.setBorder(new EmptyBorder(10, 10, 10, 10));
+        SwingUtilities.invokeLater(() -> {
+
+            setContentPane(Form);
+            Form.setBorder(new EmptyBorder(10, 10, 10, 10));
+            Form.setBackground(Color.decode("#0F1035"));
+            chatOptions.setBorder(new EmptyBorder(20, 10, 10, 10));
+            chatArea.setBorder(new EmptyBorder(10, 10, 10, 10));
 //        msgArea.setBackground(Color.decode("#FFFFF"));
-        msgArea.setEditable(false);
-        msgTxt.setEnabled(false);
-        sendBtn.setEnabled(false);
-        usernameBtn.setEnabled(false);
+            msgArea.setEditable(false);
+            msgTxt.setEnabled(false);
+            sendBtn.setEnabled(false);
+            usernameBtn.setEnabled(false);
 
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setSize(888, 690);
-        setVisible(true);
+            setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+            setSize(888, 690);
+            setVisible(true);
 
-        setLocationRelativeTo(null);
+            setLocationRelativeTo(null);
 
-        this.socket = createSocket();
-        if (socket != null && socket.isConnected()) {
+
             createReader_Writer();
 
             startCreatingGroup();
@@ -79,24 +80,39 @@ public class Client_GUI extends JFrame {
 
             leaveChat();
 
-        }
+        });
+
+        // Thread connessione
+        new Thread(() ->{
+            createSocket();
+
+        }).start();
     }
 
-    public Socket createSocket() {
-        Socket clientSocket = null;
-        try {
-            clientSocket = new Socket("localhost", 5555);
-            updateStatus(Color.GREEN, "Connected");
-
-        } catch (Exception e) {
-            updateStatus(Color.red, "Server is down");
-        }
-        return clientSocket;
+    public void createSocket() {
+        do {
+            try {
+                this.socket = new Socket("localhost", 5555);
+                System.out.println("Server up");
+                updateStatus(Color.GREEN, "Connected");
+                break;
+            } catch (Exception e) {
+                System.out.println("Server down");
+                updateStatus(Color.red, "Server is down");
+            }
+            try {
+                Thread.sleep(2000);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+        } while (true);
     }
 
     private void updateStatus(Color green, String Connected) {
-        this.statusLbl.setForeground(green);
-        this.statusLbl.setText(Connected);
+        SwingUtilities.invokeLater(() -> {
+            this.statusLbl.setForeground(green);
+            this.statusLbl.setText(Connected);
+        });
     }
 
     private void createReader_Writer() {
@@ -106,6 +122,7 @@ public class Client_GUI extends JFrame {
                 this.writer = new PrintWriter(this.socket.getOutputStream(), true);
             } catch (Exception e) {
                 System.out.println("Error:\n" + e.getMessage());
+                updateStatus(Color.red, "Server is down");
             }
         } else this.statusLbl.setText("Server is down");
     }
@@ -156,6 +173,7 @@ public class Client_GUI extends JFrame {
             } catch (Exception e) {
                 System.err.println("Server is down");
 //                e.printStackTrace();
+                updateStatus(Color.red, "Server is down");
             }
         }).start();
     }
@@ -171,6 +189,8 @@ public class Client_GUI extends JFrame {
             } else System.out.println("Doesnt exist");
         } catch (IOException e) {
             System.err.println("Error reading image: " + e.getMessage());
+            updateStatus(Color.red, "Server is down");
+
         }
     }
 
@@ -199,7 +219,7 @@ public class Client_GUI extends JFrame {
                     createGrpNameTxt.setEnabled(false);
                     createGrpCodeTxt.setEnabled(false);
                     createBtn.setEnabled(false);
-                    JOptionPane.showMessageDialog(this, "Enter username");
+                    JOptionPane.showMessageDialog(this, "Enter username", "", JOptionPane.PLAIN_MESSAGE);
                     usernameBtn.setEnabled(true);
                 }
             }
@@ -214,7 +234,8 @@ public class Client_GUI extends JFrame {
                 try {
                     msg = receivedMessage.get();
                 } catch (Exception ex) {
-                    System.out.println(ex.getMessage());;
+                    System.out.println(ex.getMessage());
+                    ;
                 }
                 if (msg.equals("Inserisci il nome e la password del gruppo")) {
                     askCreateBtn.setEnabled(false);
@@ -257,6 +278,8 @@ public class Client_GUI extends JFrame {
 //                    JOptionPane.showMessageDialog(this, this.reader.readLine());
                 } catch (Exception ex) {
                     System.err.println(ex.getMessage() + "\nLine: 175 ");
+                    updateStatus(Color.red, "Server is down");
+
                 }
             }).start();
         });
