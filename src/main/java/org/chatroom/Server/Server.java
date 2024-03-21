@@ -38,8 +38,6 @@ public class Server implements Runnable {
                 ConnectionHandler handler = new ConnectionHandler(client);
                 connections.add(handler);
                 pool.execute(handler);
-//                showActiveGroups();
-
             }
         } catch (IOException e) {
             shutdown();
@@ -73,7 +71,7 @@ public class Server implements Runnable {
     }
     public void showActiveGroups(PrintWriter writer) {
         if (groupConnections.isEmpty()) {
-            System.out.println("Non ci sono gruppi attivi al momento.");
+            //System.out.println("Non ci sono gruppi attivi al momento.");
             writer.println("Non ci sono gruppi attivi al momento.");
         } else {
             System.out.println("Gruppi attivi:");
@@ -84,7 +82,6 @@ public class Server implements Runnable {
                 System.out.println(i + ") " + groupName + " = " + password);
                 writer.println(i + ") " + groupName + " = " + password + "\n");
             }
-//            writer.println(grp);
         }
     }
 
@@ -100,61 +97,74 @@ public class Server implements Runnable {
         }
 
         private void handleGroupOptions() throws IOException {
-            //out.println("Vuoi creare un nuovo gruppo (1) o unirti a un gruppo esistente (2) o visualizzare gli elenchi dei gruppi attivi (3)?");
+
             String choice = in.readLine();
-
-            if(choice.equals("1")) {
-                //out.println("Inserisci il nome del nuovo gruppo:");
-                String groupName = in.readLine();
-
-                if (groupPasswords.containsKey(groupName)) {
-                    out.println("Il gruppo con questo nome esiste già. Scegli un altro nome.");
-                    return;
-                }
-
-                //out.println("Inserisci la password del nuovo gruppo:");
-                String password = in.readLine();
-
-                groupPasswords.put(groupName, password);
-                groupConnections.putIfAbsent(groupName, new ArrayList<>());
-                groupConnections.get(groupName).add(this);
-
-                this.groupName = groupName;
-
-                out.println("Gruppo creato con successo!");
-            } else if (choice.equals("2")) {
-                boolean joined = false;
-                if (groupPasswords.isEmpty()) {
-                    out.println("Non ci sono gruppi disponibili. Devi crearne uno nuovo.");
-                    return;
-                }else out.println("Inserisci il nome e la password del gruppo");
-                while (!joined) {
-                    //out.println("Inserisci il nome del gruppo a cui desideri unirti:");
-                    String groupName = in.readLine();
-
-                    if (!groupPasswords.containsKey(groupName)) {
-                        out.println("Il gruppo con questo nome non esiste. Riprova premendo il pulsante LEAVE.");
-                    } else {
-                        //out.println("Inserisci la password del gruppo:");
-                        String password = in.readLine();
-
-                        if (!password.equals(groupPasswords.get(groupName))) {
-                            out.println("Password errata. Riprova premendo il pulsante LEAVE.");
-                        } else {
-                            groupConnections.putIfAbsent(groupName, new ArrayList<>());
-                            groupConnections.get(groupName).add(this);
-                            this.groupName = groupName;
-                            joined = true;
-                            out.println("Unione al gruppo avvenuta con successo!");
-                        }
-                    }
-                }
-            } else if (choice.equals("3")) {
-                showActiveGroups(out);
-            }else {
-                out.println("Scelta non valida.");
+            switch (choice) {
+                case "1":
+                    createGroup();
+                    break;
+                case "2":
+                    JoinGroup();
+                    break;
+                case "3":
+                    showActiveGroups(out);
+                    break;
+                default:
+                    out.println("Scelta non valida.");
+                    break;
             }
         }
+        private void JoinGroup() throws IOException {
+            boolean joined = false;
+            if (groupPasswords.isEmpty()) {
+                out.println("Non ci sono gruppi disponibili. Devi crearne uno nuovo.");
+                return;
+            }else out.println("Inserisci il nome e la password del gruppo");
+            while (!joined) {
+
+                joined = isJoined(joined);
+            }
+        }
+
+        private boolean isJoined(boolean joined) throws IOException {
+            String groupName = in.readLine();
+            if (!groupPasswords.containsKey(groupName)) {
+                out.println("Il gruppo con questo nome non esiste. Riprova premendo il pulsante LEAVE.");
+            } else {
+
+                String password = in.readLine();
+                if (!password.equals(groupPasswords.get(groupName))) {
+                    out.println("Password errata. Riprova premendo il pulsante LEAVE.");
+                } else {
+                    groupConnections.putIfAbsent(groupName, new ArrayList<>());
+                    groupConnections.get(groupName).add(this);
+                    this.groupName = groupName;
+                    joined = true;
+                    out.println("Unione al gruppo avvenuta con successo!");
+                }
+            }
+            return joined;
+        }
+
+        private void createGroup() throws IOException {
+            //out.println("Inserisci il nome del nuovo gruppo:");
+            String groupName = in.readLine();
+
+            if (groupPasswords.containsKey(groupName)) {
+                out.println("Il gruppo con questo nome esiste già. Scegli un altro nome.");
+                return;
+            }
+            String password = in.readLine();
+
+            groupPasswords.put(groupName, password);
+            groupConnections.putIfAbsent(groupName, new ArrayList<>());
+            groupConnections.get(groupName).add(this);
+
+            this.groupName = groupName;
+            out.println("Gruppo creato con successo!");
+        }
+
+
         private void handleNicknameChange(String newNickname) {
             if (groupName != null) {
                 String oldNickname = nickname;
@@ -233,7 +243,6 @@ public class Server implements Runnable {
                 if (!client.isClosed()) {
                     client.close();
                 }
-
                 // Rimuovi il gestore della connessione dal gruppo
                 if (groupName != null && groupConnections.containsKey(groupName)) {
                     groupConnections.get(groupName).remove(this);
