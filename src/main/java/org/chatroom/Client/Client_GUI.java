@@ -4,6 +4,8 @@ import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
 import java.io.*;
 import java.net.Socket;
@@ -90,7 +92,10 @@ public class Client_GUI extends JFrame {
             createSocket();
 
         }).start();
+        renameBtn();
     }
+
+
 
     private void swingStyle() {
         Form.setBorder(new EmptyBorder(10, 10, 10, 10));
@@ -153,6 +158,8 @@ public class Client_GUI extends JFrame {
                 this.sendBtn.setEnabled(true);
                 this.usernameBtn.setEnabled(false);
                 this.usernameTxt.setEnabled(false);
+                this.renameBtn.setEnabled(true);
+                this.renameTxt.setEnabled(true);
             }
         });
     }
@@ -305,6 +312,16 @@ public class Client_GUI extends JFrame {
 
                 }
             }).start();
+        });
+    }
+
+    private void renameBtn() {
+        renameBtn.addActionListener(e -> {
+            String newName = renameTxt.getText().trim();
+            if (!newName.isEmpty()) {
+                writer.println("/nome " +newName);
+            }
+            renameTxt.setText("");
         });
     }
 
