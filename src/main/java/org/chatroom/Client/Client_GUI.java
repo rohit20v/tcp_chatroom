@@ -10,8 +10,8 @@ import java.net.Socket;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class Client_GUI extends JFrame {
-    private String host = "localhost";
-    private int port = 5555;
+    private static String host = "localhost";
+    private static int port = 5555;
     private JPanel Form;
     private JPanel chatOptions;
     private JPanel chatArea;
@@ -33,6 +33,9 @@ public class Client_GUI extends JFrame {
     private JTextField joinGrpCodeTxt;
     private JButton showGrpsBtn;
     private JLabel gc_name;
+    private JRadioButton prvtBtn;
+    private JTextField renameTxt;
+    private JButton renameBtn;
     private BufferedReader reader;
     private PrintWriter writer;
     private Socket socket;
@@ -45,15 +48,15 @@ public class Client_GUI extends JFrame {
         SwingUtilities.invokeLater(() -> {
 
             setContentPane(Form);
-            Form.setBorder(new EmptyBorder(10, 10, 10, 10));
-            Form.setBackground(Color.decode("#0F1035"));
-            chatOptions.setBorder(new EmptyBorder(20, 10, 10, 10));
-            chatArea.setBorder(new EmptyBorder(10, 10, 10, 10));
-//        msgArea.setBackground(Color.decode("#FFFFF"));
+            swingStyle();
             msgArea.setEditable(false);
             msgTxt.setEnabled(false);
             sendBtn.setEnabled(false);
+            usernameTxt.setEnabled(false);
             usernameBtn.setEnabled(false);
+            renameTxt.setEnabled(false);
+            renameBtn.setEnabled(false);
+            leaveBtn.setEnabled(false);
 
             setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
             setSize(888, 690);
@@ -83,10 +86,22 @@ public class Client_GUI extends JFrame {
         });
 
         // Thread connessione
-        new Thread(() ->{
+        new Thread(() -> {
             createSocket();
 
         }).start();
+    }
+
+    private void swingStyle() {
+        Form.setBorder(new EmptyBorder(10, 10, 10, 10));
+        Form.setBackground(Color.decode("#0F1035"));
+        chatOptions.setBorder(new EmptyBorder(20, 10, 10, 10));
+        chatArea.setBorder(new EmptyBorder(10, 10, 10, 10));
+//        msgArea.setBackground(Color.decode("#FFFFF"));
+
+        createBtn.setMinimumSize(new Dimension(111, 20));
+        joinBtn.setMinimumSize(new Dimension(111, 20));
+        prvtBtn.setOpaque(false);
     }
 
     public void createSocket() {
@@ -221,6 +236,8 @@ public class Client_GUI extends JFrame {
                     createBtn.setEnabled(false);
                     JOptionPane.showMessageDialog(this, "Enter username", "", JOptionPane.PLAIN_MESSAGE);
                     usernameBtn.setEnabled(true);
+                    leaveBtn.setEnabled(true);
+                    usernameTxt.setEnabled(true);
                 }
             }
         });
@@ -228,25 +245,29 @@ public class Client_GUI extends JFrame {
 
     private void startJoiningGroup() {
         askJoinBtn.addActionListener(e -> {
-            this.writer.println("2");
-            new Thread(() -> {
-                String msg = "";
-                try {
-                    msg = receivedMessage.get();
-                } catch (Exception ex) {
-                    System.out.println(ex.getMessage());
-                    ;
-                }
-                if (msg.equals("Inserisci il nome e la password del gruppo")) {
-                    askCreateBtn.setEnabled(false);
-                    askJoinBtn.setEnabled(false);
-                    joinGrpNameTxt.setEnabled(true);
-                    joinGrpCodeTxt.setEnabled(true);
-                    joinBtn.setEnabled(true);
-                    joinGroup();
-                    showGrpsBtn.setEnabled(false);
-                }
-            }).start();
+            if (this.writer == null) {
+                System.err.println("Server is not online");
+            } else {
+                this.writer.println("2");
+                new Thread(() -> {
+                    String msg = "";
+                    try {
+                        msg = receivedMessage.get();
+                    } catch (Exception ex) {
+                        System.out.println(ex.getMessage());
+                        ;
+                    }
+                    if (msg.equals("Inserisci il nome e la password del gruppo")) {
+                        askCreateBtn.setEnabled(false);
+                        askJoinBtn.setEnabled(false);
+                        joinGrpNameTxt.setEnabled(true);
+                        joinGrpCodeTxt.setEnabled(true);
+                        joinBtn.setEnabled(true);
+                        joinGroup();
+                        showGrpsBtn.setEnabled(false);
+                    }
+                }).start();
+            }
         });
     }
 
@@ -264,6 +285,8 @@ public class Client_GUI extends JFrame {
                     joinGrpCodeTxt.setEnabled(false);
                     joinBtn.setEnabled(false);
                     usernameBtn.setEnabled(true);
+                    leaveBtn.setEnabled(true);
+                    usernameTxt.setEnabled(true);
                 }
             }
         });
