@@ -48,6 +48,7 @@ public class Server implements Runnable {
     public synchronized List<ConnectionHandler> getGroupConnections(String groupName) {
         return groupConnections.getOrDefault(groupName, new ArrayList<>());
     }
+
     // Aggiunto un metodo per inviare un messaggio a un gruppo specifico
     public synchronized void broadcastToGroup(String groupName, String message) {
         List<ConnectionHandler> connections = getGroupConnections(groupName);
@@ -55,6 +56,7 @@ public class Server implements Runnable {
             ch.sendMessage(message);
         }
     }
+
     public void shutdown() {
         try {
             done = true;
@@ -69,6 +71,7 @@ public class Server implements Runnable {
             // ignore it
         }
     }
+
     public void showActiveGroups(PrintWriter writer) {
         if (groupConnections.isEmpty()) {
             //System.out.println("Non ci sono gruppi attivi al momento.");
@@ -114,14 +117,13 @@ public class Server implements Runnable {
                     break;
             }
         }
+
         private void JoinGroup() throws IOException {
             boolean joined = false;
             if (groupPasswords.isEmpty()) {
                 out.println("Non ci sono gruppi disponibili. Devi crearne uno nuovo.");
-                return;
-            }else out.println("Inserisci il nome e la password del gruppo");
-            while (!joined) {
-
+            } else {
+//                out.println("Inserisci il nome e la password del gruppo") ;
                 joined = isJoined(joined);
             }
         }
@@ -130,11 +132,13 @@ public class Server implements Runnable {
             String groupName = in.readLine();
             if (!groupPasswords.containsKey(groupName)) {
                 out.println("Il gruppo con questo nome non esiste. Riprova premendo il pulsante LEAVE.");
+                return false;
             } else {
 
                 String password = in.readLine();
                 if (!password.equals(groupPasswords.get(groupName))) {
                     out.println("Password errata. Riprova premendo il pulsante LEAVE.");
+                    return false;
                 } else {
                     groupConnections.putIfAbsent(groupName, new ArrayList<>());
                     groupConnections.get(groupName).add(this);
@@ -191,7 +195,8 @@ public class Server implements Runnable {
 
                 //out.println("Inserisci il tuo nickname:");
                 nickname = in.readLine();
-                if (nickname.equalsIgnoreCase("/quit") || nickname.equalsIgnoreCase("/nome") || nickname.equalsIgnoreCase("/info")) shutdown();
+                if (nickname.equalsIgnoreCase("/quit") || nickname.equalsIgnoreCase("/nome") || nickname.equalsIgnoreCase("/info"))
+                    shutdown();
                 System.out.println(nickname + " Connesso!");
                 broadcastToGroup(groupName, nickname + " è entrato nel gruppo");
 
@@ -208,9 +213,9 @@ public class Server implements Runnable {
                         shutdown();
                         broadcastToGroup(groupName, nickname + " ha lasciato il gruppo");
 
-                    } else if (message.startsWith("/info")){
+                    } else if (message.startsWith("/info")) {
                         showGroupParticipants(groupName);
-                    }else {
+                    } else {
                         broadcastToGroup(groupName, nickname + ": " + message);
                     }
                 }
