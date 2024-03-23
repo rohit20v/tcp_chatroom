@@ -4,8 +4,6 @@ import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
 import java.io.*;
 import java.net.Socket;
@@ -42,8 +40,7 @@ public class Client_GUI extends JFrame {
     private PrintWriter writer;
     private Socket socket;
     private String username;
-    private boolean inGroup = false;
-    AtomicReference<String> receivedMessage = new AtomicReference<>("");
+    private AtomicReference<String> receivedMessage = new AtomicReference<>("");
 
 
     public Client_GUI() {
@@ -71,6 +68,7 @@ public class Client_GUI extends JFrame {
 
             startCreatingGroup();
             startJoiningGroup();
+
 //
 //            createGroup();
 //            joinGroup();
@@ -85,6 +83,7 @@ public class Client_GUI extends JFrame {
 
             leaveChat();
 
+            renameBtn();
         });
 
         // Thread connessione
@@ -92,9 +91,7 @@ public class Client_GUI extends JFrame {
             createSocket();
 
         }).start();
-        renameBtn();
     }
-
 
 
     private void swingStyle() {
@@ -181,20 +178,16 @@ public class Client_GUI extends JFrame {
                     receivedMessage.set(reader.readLine());
                     if (receivedMessage.get() != null && !receivedMessage.get().isEmpty()) {
                         if (receivedMessage.get().endsWith("jpg") || receivedMessage.get().endsWith("png")) {
-                            System.out.println("Got " + receivedMessage);
+                            System.out.println(receivedMessage);
                             getImage(receivedMessage.get());
                         } else {
-                            System.out.println("Got " + receivedMessage);
-                            msgArea.append(receivedMessage + "\n");
+                            System.out.println(receivedMessage);
+                            msgArea.append(receivedMessage.get() + "\n");
                         }
-//                        else {
-//                            JOptionPane.showMessageDialog(null, receivedMessage);
-//                        }
                     }
                 }
             } catch (Exception e) {
                 System.err.println("Server is down");
-//                e.printStackTrace();
                 updateStatus(Color.red, "Server is down");
             }
         }).start();
@@ -218,14 +211,18 @@ public class Client_GUI extends JFrame {
 
     private void startCreatingGroup() {
         askCreateBtn.addActionListener(e -> {
-            writer.println("1");
-            askJoinBtn.setEnabled(false);
-            askCreateBtn.setEnabled(false);
-            createGrpNameTxt.setEnabled(true);
-            createGrpCodeTxt.setEnabled(true);
-            createBtn.setEnabled(true);
-            showGrpsBtn.setEnabled(false);
-            createGroup();
+            if (this.writer == null) {
+                System.out.println("Socked is not online");
+            } else {
+                writer.println("1");
+                askJoinBtn.setEnabled(false);
+                askCreateBtn.setEnabled(false);
+                createGrpNameTxt.setEnabled(true);
+                createGrpCodeTxt.setEnabled(true);
+                createBtn.setEnabled(true);
+                showGrpsBtn.setEnabled(false);
+                createGroup();
+            }
         });
     }
 
@@ -241,7 +238,7 @@ public class Client_GUI extends JFrame {
                     createGrpNameTxt.setEnabled(false);
                     createGrpCodeTxt.setEnabled(false);
                     createBtn.setEnabled(false);
-                    JOptionPane.showMessageDialog(this, "Enter username", "", JOptionPane.PLAIN_MESSAGE);
+                    JOptionPane.showMessageDialog(this, "Enter username", "", JOptionPane.INFORMATION_MESSAGE);
                     usernameBtn.setEnabled(true);
                     leaveBtn.setEnabled(true);
                     usernameTxt.setEnabled(true);
@@ -257,19 +254,15 @@ public class Client_GUI extends JFrame {
             } else {
                 this.writer.println("2");
                 new Thread(() -> {
-                    String msg = "";
-                    try {
-                        msg = receivedMessage.get();
-                    } catch (Exception ex) {
-                        System.out.println(ex.getMessage());
-                        ;
-                    }
-                    if (msg.equals("Inserisci il nome e la password del gruppo")) {
+                    String msg;
+                    msg = receivedMessage.get();
+                    if (!msg.equals("Non ci sono gruppi disponibili. Devi crearne uno nuovo.")) {
                         askCreateBtn.setEnabled(false);
                         askJoinBtn.setEnabled(false);
                         joinGrpNameTxt.setEnabled(true);
                         joinGrpCodeTxt.setEnabled(true);
                         joinBtn.setEnabled(true);
+                        receivedMessage.set("");
                         joinGroup();
                         showGrpsBtn.setEnabled(false);
                     }
@@ -278,25 +271,45 @@ public class Client_GUI extends JFrame {
         });
     }
 
+    //FIXME it ain't letting me
+    // set the username instead im forced
+    // to press join twice to go on and by pressing it twice its setting the username as the group name;
     private void joinGroup() {
         joinBtn.addActionListener(e -> {
-            System.out.println("In join");
-            if (joinBtn.isEnabled()) {
-                if (!joinGrpCodeTxt.getText().isEmpty() && !joinGrpNameTxt.getText().isEmpty()) {
-                    this.writer.println(joinGrpNameTxt.getText());
-                    this.writer.println(joinGrpCodeTxt.getText());
-                    groupName.setText(joinGrpNameTxt.getText());
-                    joinGrpNameTxt.setText("");
-                    joinGrpCodeTxt.setText("");
-                    joinGrpNameTxt.setEnabled(false);
-                    joinGrpCodeTxt.setEnabled(false);
-                    joinBtn.setEnabled(false);
-                    usernameBtn.setEnabled(true);
-                    leaveBtn.setEnabled(true);
-                    usernameTxt.setEnabled(true);
-                }
+
+            if (!joinGrpCodeTxt.getText().isEmpty() && !joinGrpNameTxt.getText().isEmpty()) {
+                this.writer.println(joinGrpNameTxt.getText());
+                this.writer.println(joinGrpCodeTxt.getText());
+                System.out.println(receivedMessage);
+                System.out.println("in Join");
+                new Thread(() -> {
+                    verifyJoining();
+                }).start();
             }
         });
+    }
+
+    private void verifyJoining() {
+        joinGroup();
+//        System.out.println(receivedMessage);
+        if (!receivedMessage.get().endsWith("LEAVE.")) {
+            System.out.println("If verify join");
+            groupName.setText(joinGrpNameTxt.getText());
+            joinGrpNameTxt.setText("");
+            joinGrpCodeTxt.setText("");
+            joinGrpNameTxt.setEnabled(false);
+            joinGrpCodeTxt.setEnabled(false);
+            joinBtn.setEnabled(false);
+            usernameBtn.setEnabled(true);
+            leaveBtn.setEnabled(true);
+            usernameTxt.setEnabled(true);
+        } else {
+            System.out.println("Else verify join");
+            joinBtn.setEnabled(false);
+            usernameBtn.setEnabled(false);
+            leaveBtn.setEnabled(true);
+            usernameTxt.setEnabled(false);
+        }
     }
 
 
@@ -319,7 +332,7 @@ public class Client_GUI extends JFrame {
         renameBtn.addActionListener(e -> {
             String newName = renameTxt.getText().trim();
             if (!newName.isEmpty()) {
-                writer.println("/nome " +newName);
+                writer.println("/nome " + newName);
             }
             renameTxt.setText("");
         });
