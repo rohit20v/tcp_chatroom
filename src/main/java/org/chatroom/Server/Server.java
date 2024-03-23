@@ -155,7 +155,7 @@ public class Server implements Runnable {
             String groupName = in.readLine();
 
             if (groupPasswords.containsKey(groupName)) {
-                out.println("Il gruppo con questo nome esiste già. Scegli un altro nome.");
+                out.println("Il gruppo con questo nome esiste già. Riprova premendo il pulsante LEAVE.");
                 return;
             }
             String password = in.readLine();
