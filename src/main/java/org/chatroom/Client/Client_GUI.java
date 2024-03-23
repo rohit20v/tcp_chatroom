@@ -23,17 +23,15 @@ public class Client_GUI extends JFrame {
     private JLabel statusLbl;
     private JTextField usernameTxt;
     private JButton usernameBtn;
-    private JTextField createGrpNameTxt;
+    private JTextField grpNameTxt;
     private JButton askCreateBtn;
     private JButton askJoinBtn;
-    private JTextField joinGrpNameTxt;
     private JButton createBtn;
     private JButton joinBtn;
-    private JTextField createGrpCodeTxt;
-    private JTextField joinGrpCodeTxt;
+    private JTextField grpCodeTxt;
     private JButton showGrpsBtn;
     private JLabel gc_name;
-    private JRadioButton prvtBtn;
+    private JRadioButton pvtBtn;
     private JTextField renameTxt;
     private JButton renameBtn;
     private BufferedReader reader;
@@ -42,10 +40,8 @@ public class Client_GUI extends JFrame {
     private String username;
     private AtomicReference<String> receivedMessage = new AtomicReference<>("");
 
-
     public Client_GUI() {
         SwingUtilities.invokeLater(() -> {
-
             setContentPane(Form);
             swingStyle();
             msgArea.setEditable(false);
@@ -56,22 +52,17 @@ public class Client_GUI extends JFrame {
             renameTxt.setEnabled(false);
             renameBtn.setEnabled(false);
             leaveBtn.setEnabled(false);
+            pvtBtn.setEnabled(false);
 
             setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
             setSize(888, 690);
             setVisible(true);
-
             setLocationRelativeTo(null);
-
 
             createReader_Writer();
 
             startCreatingGroup();
             startJoiningGroup();
-
-//
-//            createGroup();
-//            joinGroup();
 
             showGroups();
 
@@ -86,24 +77,17 @@ public class Client_GUI extends JFrame {
             renameBtn();
         });
 
-        // Thread connessione
-        new Thread(() -> {
-            createSocket();
-
-        }).start();
+        new Thread(this::createSocket).start();
     }
-
-
     private void swingStyle() {
         Form.setBorder(new EmptyBorder(10, 10, 10, 10));
         Form.setBackground(Color.decode("#0F1035"));
         chatOptions.setBorder(new EmptyBorder(20, 10, 10, 10));
         chatArea.setBorder(new EmptyBorder(10, 10, 10, 10));
-//        msgArea.setBackground(Color.decode("#FFFFF"));
 
         createBtn.setMinimumSize(new Dimension(111, 20));
         joinBtn.setMinimumSize(new Dimension(111, 20));
-        prvtBtn.setOpaque(false);
+        pvtBtn.setOpaque(false);
     }
 
     public void createSocket() {
@@ -181,8 +165,8 @@ public class Client_GUI extends JFrame {
                             System.out.println(receivedMessage);
                             getImage(receivedMessage.get());
                         } else {
-                            System.out.println(receivedMessage);
-                            msgArea.append(receivedMessage.get() + "\n");
+                            if (!receivedMessage.get().endsWith("momento.")) msgArea.append(receivedMessage.get() + "\n");
+                            else JOptionPane.showMessageDialog(this,  receivedMessage, "Groups", JOptionPane.ERROR_MESSAGE);
                         }
                     }
                 }
@@ -212,13 +196,13 @@ public class Client_GUI extends JFrame {
     private void startCreatingGroup() {
         askCreateBtn.addActionListener(e -> {
             if (this.writer == null) {
-                System.out.println("Socked is not online");
+                JOptionPane.showMessageDialog(this, "Server is offline", "", JOptionPane.ERROR_MESSAGE);
             } else {
                 writer.println("1");
                 askJoinBtn.setEnabled(false);
                 askCreateBtn.setEnabled(false);
-                createGrpNameTxt.setEnabled(true);
-                createGrpCodeTxt.setEnabled(true);
+                grpNameTxt.setEnabled(true);
+                grpCodeTxt.setEnabled(true);
                 createBtn.setEnabled(true);
                 showGrpsBtn.setEnabled(false);
                 createGroup();
@@ -229,19 +213,26 @@ public class Client_GUI extends JFrame {
     private void createGroup() {
         createBtn.addActionListener(e -> {
             if (createBtn.isEnabled()) {
-                if (!createGrpCodeTxt.getText().isEmpty() && !createGrpNameTxt.getText().isEmpty()) {
-                    this.writer.println(createGrpNameTxt.getText());
-                    this.writer.println(createGrpCodeTxt.getText());
-                    groupName.setText(createGrpNameTxt.getText());
-                    createGrpNameTxt.setText("");
-                    createGrpCodeTxt.setText("");
-                    createGrpNameTxt.setEnabled(false);
-                    createGrpCodeTxt.setEnabled(false);
-                    createBtn.setEnabled(false);
-                    JOptionPane.showMessageDialog(this, "Enter username", "", JOptionPane.INFORMATION_MESSAGE);
-                    usernameBtn.setEnabled(true);
-                    leaveBtn.setEnabled(true);
-                    usernameTxt.setEnabled(true);
+                if (!grpCodeTxt.getText().isEmpty() && !grpNameTxt.getText().isEmpty()) {
+                    this.writer.println(grpNameTxt.getText());
+                    this.writer.println(grpCodeTxt.getText());
+                    groupName.setText(grpNameTxt.getText());
+                    grpNameTxt.setText("");
+                    grpCodeTxt.setText("");
+                    new Thread(() -> {
+                        if (!receivedMessage.get().endsWith("LEAVE.")) {
+                            grpNameTxt.setEnabled(false);
+                            grpCodeTxt.setEnabled(false);
+                            createBtn.setEnabled(false);
+                            JOptionPane.showMessageDialog(this, "Enter username", "", JOptionPane.INFORMATION_MESSAGE);
+                            usernameBtn.setEnabled(true);
+                            leaveBtn.setEnabled(true);
+                            usernameTxt.setEnabled(true);
+                        }else {
+                            createBtn.setEnabled(false);
+                            leaveBtn.setEnabled(true);
+                        }
+                    }).start();
                 }
             }
         });
@@ -250,7 +241,7 @@ public class Client_GUI extends JFrame {
     private void startJoiningGroup() {
         askJoinBtn.addActionListener(e -> {
             if (this.writer == null) {
-                System.err.println("Server is not online");
+                JOptionPane.showMessageDialog(this, "Server is offline", "", JOptionPane.ERROR_MESSAGE);
             } else {
                 this.writer.println("2");
                 new Thread(() -> {
@@ -259,8 +250,8 @@ public class Client_GUI extends JFrame {
                     if (!msg.equals("Non ci sono gruppi disponibili. Devi crearne uno nuovo.")) {
                         askCreateBtn.setEnabled(false);
                         askJoinBtn.setEnabled(false);
-                        joinGrpNameTxt.setEnabled(true);
-                        joinGrpCodeTxt.setEnabled(true);
+                        grpNameTxt.setEnabled(true);
+                        grpCodeTxt.setEnabled(true);
                         joinBtn.setEnabled(true);
                         receivedMessage.set("");
                         joinGroup();
@@ -271,40 +262,28 @@ public class Client_GUI extends JFrame {
         });
     }
 
-    //FIXME it ain't letting me
-    // set the username instead im forced
-    // to press join twice to go on and by pressing it twice its setting the username as the group name;
     private void joinGroup() {
         joinBtn.addActionListener(e -> {
-
-            if (!joinGrpCodeTxt.getText().isEmpty() && !joinGrpNameTxt.getText().isEmpty()) {
-                this.writer.println(joinGrpNameTxt.getText());
-                this.writer.println(joinGrpCodeTxt.getText());
-                System.out.println(receivedMessage);
-                System.out.println("in Join");
-                new Thread(() -> {
-                    verifyJoining();
-                }).start();
+            if (!grpCodeTxt.getText().isEmpty() && !grpNameTxt.getText().isEmpty()) {
+                this.writer.println(grpNameTxt.getText());
+                this.writer.println(grpCodeTxt.getText());
+                new Thread(this::verifyJoining).start();
             }
         });
     }
 
     private void verifyJoining() {
-        joinGroup();
-//        System.out.println(receivedMessage);
-        if (!receivedMessage.get().endsWith("LEAVE.")) {
-            System.out.println("If verify join");
-            groupName.setText(joinGrpNameTxt.getText());
-            joinGrpNameTxt.setText("");
-            joinGrpCodeTxt.setText("");
-            joinGrpNameTxt.setEnabled(false);
-            joinGrpCodeTxt.setEnabled(false);
+        if (!receivedMessage.get().endsWith("LEAVE.") && !receivedMessage.get().endsWith("valida.")) {
+            groupName.setText(grpNameTxt.getText());
+            grpNameTxt.setText("");
+            grpCodeTxt.setText("");
+            grpNameTxt.setEnabled(false);
+            grpCodeTxt.setEnabled(false);
             joinBtn.setEnabled(false);
             usernameBtn.setEnabled(true);
             leaveBtn.setEnabled(true);
             usernameTxt.setEnabled(true);
         } else {
-            System.out.println("Else verify join");
             joinBtn.setEnabled(false);
             usernameBtn.setEnabled(false);
             leaveBtn.setEnabled(true);
@@ -315,16 +294,8 @@ public class Client_GUI extends JFrame {
 
     private void showGroups() {
         showGrpsBtn.addActionListener(e -> {
-            this.writer.println("3");
-            new Thread(() -> {
-                try {
-//                    JOptionPane.showMessageDialog(this, this.reader.readLine());
-                } catch (Exception ex) {
-                    System.err.println(ex.getMessage() + "\nLine: 175 ");
-                    updateStatus(Color.red, "Server is down");
-
-                }
-            }).start();
+            if(this.writer != null) this.writer.println("3");
+            else JOptionPane.showMessageDialog(this, "Server is offline", "Groups", JOptionPane.ERROR_MESSAGE);
         });
     }
 
