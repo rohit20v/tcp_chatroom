@@ -4,9 +4,12 @@ import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.io.*;
 import java.net.Socket;
+import java.util.StringTokenizer;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class Client_GUI extends JFrame {
@@ -88,6 +91,7 @@ public class Client_GUI extends JFrame {
         createBtn.setMinimumSize(new Dimension(111, 20));
         joinBtn.setMinimumSize(new Dimension(111, 20));
         pvtBtn.setOpaque(false);
+        buttonHoverFx();
     }
 
     public void createSocket() {
@@ -95,7 +99,7 @@ public class Client_GUI extends JFrame {
             try {
                 this.socket = new Socket("localhost", 5555);
                 System.out.println("Server up");
-                updateStatus(Color.GREEN, "Connected");
+                updateStatus(Color.decode("#3a86ff"), "Connected");
                 break;
             } catch (Exception e) {
                 System.out.println("Server down");
@@ -291,10 +295,9 @@ public class Client_GUI extends JFrame {
         }
     }
 
-
     private void showGroups() {
         showGrpsBtn.addActionListener(e -> {
-            if(this.writer != null) this.writer.println("3");
+            if (this.writer != null) this.writer.println("3");
             else JOptionPane.showMessageDialog(this, "Server is offline", "Groups", JOptionPane.ERROR_MESSAGE);
         });
     }
@@ -316,6 +319,182 @@ public class Client_GUI extends JFrame {
             SwingUtilities.invokeLater(Client_GUI::new);
         });
     }
+
+    private void buttonHoverFx() {
+        askCreateBtn.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseEntered(MouseEvent e) {
+                if (askCreateBtn.isEnabled()) {
+                    super.mouseEntered(e);
+                    askCreateBtn.setBackground(Color.decode("#184e77"));
+                    askCreateBtn.setForeground(Color.decode("#72EFDD"));
+                }
+
+            }
+
+            @Override
+            public void mouseExited(MouseEvent e) {
+                if (askCreateBtn.isEnabled()) {
+                    super.mouseEntered(e);
+                    askCreateBtn.setBackground(Color.decode("#72EFDD"));
+                    askCreateBtn.setForeground(Color.decode("#184e77"));
+                }
+            }
+        });
+        askJoinBtn.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseEntered(MouseEvent e) {
+                if (askJoinBtn.isEnabled()) {
+                    super.mouseEntered(e);
+                    askJoinBtn.setBackground(Color.decode("#184e77"));
+                    askJoinBtn.setForeground(Color.decode("#72EFDD"));
+                }
+
+            }
+
+            @Override
+            public void mouseExited(MouseEvent e) {
+                if (askJoinBtn.isEnabled()) {
+                    super.mouseEntered(e);
+                    askJoinBtn.setBackground(Color.decode("#72EFDD"));
+                    askJoinBtn.setForeground(Color.decode("#184e77"));
+                }
+            }
+        });
+        leaveBtn.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseEntered(MouseEvent e) {
+                if (leaveBtn.isEnabled()) {
+                    super.mouseEntered(e);
+                    leaveBtn.setBackground(Color.decode("#ef476f"));
+                    leaveBtn.setForeground(Color.decode("#edf2fb"));
+                }
+            }
+            @Override
+            public void mouseExited(MouseEvent e) {
+                if (leaveBtn.isEnabled()) {
+                    super.mouseExited(e);
+                    leaveBtn.setBackground(Color.decode("#DCF2F1"));
+                    leaveBtn.setForeground(Color.decode("#ef476f"));
+                }
+            }
+        });
+        createBtn.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseEntered(MouseEvent e) {
+                if (createBtn.isEnabled()) {
+                    super.mouseEntered(e);
+                    createBtn.setBackground(Color.decode("#0077b6"));
+                    createBtn.setForeground(Color.white);
+                }
+
+            }
+            @Override
+            public void mouseExited(MouseEvent e) {
+                if (createBtn.isEnabled()) {
+                    super.mouseEntered(e);
+                    createBtn.setBackground(Color.decode("#90E0EF"));
+                    createBtn.setForeground(Color.decode("#0077b6"));
+                }
+            }
+        });
+        joinBtn.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseEntered(MouseEvent e) {
+                if (joinBtn.isEnabled()) {
+                    super.mouseEntered(e);
+                    joinBtn.setBackground(Color.decode("#0077b6"));
+                    joinBtn.setForeground(Color.white);
+                }
+
+            }
+            @Override
+            public void mouseExited(MouseEvent e) {
+                if (joinBtn.isEnabled()) {
+                    super.mouseEntered(e);
+                    joinBtn.setBackground(Color.decode("#90E0EF"));
+                    joinBtn.setForeground(Color.decode("#0077b6"));
+                }
+            }
+        });
+        usernameBtn.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseEntered(MouseEvent e) {
+                if (usernameBtn.isEnabled()) {
+                    super.mouseEntered(e);
+                    usernameBtn.setBackground(Color.decode("#0077b6"));
+                    usernameBtn.setForeground(Color.white);
+                }
+
+            }
+            @Override
+            public void mouseExited(MouseEvent e) {
+                if (usernameBtn.isEnabled()) {
+                    super.mouseEntered(e);
+                    usernameBtn.setBackground(Color.decode("#90E0EF"));
+                    usernameBtn.setForeground(Color.decode("#0077b6"));
+                }
+            }
+        });
+        renameBtn.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseEntered(MouseEvent e) {
+                if (renameBtn.isEnabled()) {
+                    super.mouseEntered(e);
+                    renameBtn.setBackground(Color.decode("#0077b6"));
+                    renameBtn.setForeground(Color.white);
+                }
+
+            }
+            @Override
+            public void mouseExited(MouseEvent e) {
+                if (renameBtn.isEnabled()) {
+                    super.mouseEntered(e);
+                    renameBtn.setBackground(Color.decode("#90E0EF"));
+                    renameBtn.setForeground(Color.decode("#0077b6"));
+                }
+            }
+        });
+        sendBtn.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseEntered(MouseEvent e) {
+                if (sendBtn.isEnabled()) {
+                    super.mouseEntered(e);
+                    sendBtn.setBackground(Color.decode("#70e000"));
+                    sendBtn.setForeground(Color.white);
+                }
+
+            }
+            @Override
+            public void mouseExited(MouseEvent e) {
+                if (sendBtn.isEnabled()) {
+                    super.mouseEntered(e);
+                    sendBtn.setBackground(Color.decode("#57cc99"));
+                    sendBtn.setForeground(Color.black);
+                }
+            }
+        });
+        showGrpsBtn.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseEntered(MouseEvent e) {
+                if (showGrpsBtn.isEnabled()) {
+                    super.mouseEntered(e);
+                    showGrpsBtn.setBackground(Color.decode("#caffbf"));
+                    showGrpsBtn.setForeground(Color.black);
+                }
+
+            }
+            @Override
+            public void mouseExited(MouseEvent e) {
+                if (showGrpsBtn.isEnabled()) {
+                    super.mouseEntered(e);
+                    showGrpsBtn.setBackground(Color.decode("#2B2D42"));
+                    showGrpsBtn.setForeground(Color.white);
+                }
+            }
+        });
+    }
+
 }
 
 
