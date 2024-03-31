@@ -6,10 +6,7 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -18,13 +15,18 @@ public class Server implements Runnable {
     private ServerSocket server;
     private boolean done;
     private ExecutorService pool;
-    private Map<String, String> groupPasswords;
+    //    private Map<String, String> groupPasswords;
+    private ArrayList<ServerGroup> groups = new ArrayList<>();
+    private ServerGroup group;
     private Map<String, List<ConnectionHandler>> groupConnections;
+//    private Map<String, Boolean> groupPrivacy; // Map per tenere traccia della privacy di ciascun gruppo
 
     public Server() {
         connections = new ArrayList<>();
-        groupPasswords = new HashMap<>();
+//        groupPasswords = new HashMap<>();
+        group = new ServerGroup();
         groupConnections = new HashMap<>();
+//        groupPrivacy = new HashMap<>();
         done = false;
     }
 
@@ -50,12 +52,26 @@ public class Server implements Runnable {
     }
 
     // Aggiunto un metodo per inviare un messaggio a un gruppo specifico
+    //TODO rohit gay
     public synchronized void broadcastToGroup(String groupName, String message) {
-        List<ConnectionHandler> connections = getGroupConnections(groupName);
-        for (ConnectionHandler ch : connections) {
-            ch.sendMessage(message);
+//        List<ConnectionHandler> connections = getGroupConnections(groupName);
+//        for (ConnectionHandler ch : connections) {
+//            ch.sendMessage(message);
+//        }
+        System.out.println("Siamo nel broadcast");
+        for (ServerGroup g : groups) {
+            if (g.getGroupName().equalsIgnoreCase(groupName)) {
+                System.out.println("Ho trovato: "+groupName);
+                List<ConnectionHandler> connections = g.getClients();
+                for (ConnectionHandler ch : connections) {
+                    ch.sendMessage(message);
+                }
+                break;
+            }else
+                System.out.println("Sono uscito");
         }
     }
+
 
     public void shutdown() {
         try {
@@ -73,17 +89,19 @@ public class Server implements Runnable {
     }
 
     public void showActiveGroups(PrintWriter writer) {
-        if (groupConnections.isEmpty()) {
-            //System.out.println("Non ci sono gruppi attivi al momento.");
-            writer.println("Non ci sono gruppi attivi al momento.");
+        if (groups.isEmpty()) {
+            writer.println("Non ci sono gruppi attivi al momento");
         } else {
             System.out.println("Gruppi attivi:");
             int i = 0;
-            for (String groupName : groupConnections.keySet()) {
-                String password = groupPasswords.get(groupName);
+            for (ServerGroup g : groups) {
                 i++;
-                System.out.println(i + ") " + groupName + " = " + password);
-                writer.println(i + ") " + groupName + " = " + password + "\n");
+                if (g.isPrivacy()) {
+                    writer.println(i + ") " + g.getGroupName() + " = " + "******" + "\n");
+                } else {
+                    writer.println(i + ") " + g.getGroupName() + " = " + g.getGroupPassword() + "\n");
+                }
+
             }
         }
     }
@@ -93,79 +111,122 @@ public class Server implements Runnable {
         private BufferedReader in;
         private PrintWriter out;
         private String groupName;
+
+        public String getNickname() {
+            return nickname;
+        }
+
         private String nickname;
 
         public ConnectionHandler(Socket client) {
+
             this.client = client;
         }
 
-        private void handleGroupOptions() throws IOException {
+        public ConnectionHandler(String nickname) {
+            this.nickname = nickname;
+        }
 
+        private void handleGroupOptions() throws IOException {
             String choice = in.readLine();
+            System.out.println("il mess ricevuto è " + choice);
             switch (choice) {
                 case "1":
                     createGroup();
                     break;
                 case "2":
+                    System.out.println("semo denro la funzione pe joinare");
                     JoinGroup();
                     break;
                 case "3":
+                    System.out.println("beccate ste gruppi zio cane");
                     showActiveGroups(out);
                     break;
                 default:
-                    out.println("Scelta non valida.");
+                    out.println("Scelta non valida (qua c'è un errore).");
                     break;
             }
         }
 
         private void JoinGroup() throws IOException {
-            boolean joined = false;
-            if (groupPasswords.isEmpty()) {
+            if (groups.isEmpty()) {
                 out.println("Non ci sono gruppi disponibili. Devi crearne uno nuovo.");
             } else {
-//                out.println("Inserisci il nome e la password del gruppo") ;
-                joined = isJoined(joined);
+                isJoined();
             }
         }
 
-        private boolean isJoined(boolean joined) throws IOException {
-            String groupName = in.readLine();
-            if (!groupPasswords.containsKey(groupName)) {
-                out.println("Il gruppo con questo nome non esiste. Riprova premendo il pulsante LEAVE.");
-                return false;
-            } else {
-
-                String password = in.readLine();
-                if (!password.equals(groupPasswords.get(groupName))) {
-                    out.println("Password errata. Riprova premendo il pulsante LEAVE.");
-                    return false;
-                } else {
-                    groupConnections.putIfAbsent(groupName, new ArrayList<>());
-                    groupConnections.get(groupName).add(this);
-                    this.groupName = groupName;
-                    joined = true;
-                    out.println("Unione al gruppo avvenuta con successo!");
+        private void isJoined() throws IOException {
+            groupName = in.readLine();
+            ServerGroup tempGroup = null;
+            boolean Isthere = false;
+            for (ServerGroup g : groups) {
+                if (g.getGroupName().equalsIgnoreCase(groupName)) {
+                    Isthere = true;
+                    tempGroup = g;
+                    break;
                 }
             }
-            return joined;
-        }
-
-        private void createGroup() throws IOException {
-            //out.println("Inserisci il nome del nuovo gruppo:");
-            String groupName = in.readLine();
-
-            if (groupPasswords.containsKey(groupName)) {
-                out.println("Il gruppo con questo nome esiste già. Riprova premendo il pulsante LEAVE.");
-                return;
+            if (!Isthere) {
+                out.println("Il gruppo con questo nome non esiste. Riprova premendo il pulsante LEAVE.");
             }
             String password = in.readLine();
+            if (Objects.requireNonNull(tempGroup).getGroupPassword().equalsIgnoreCase(password)) {
+                askUsername();
+                tempGroup.setClients(this);
+                out.println("Unione al gruppo avvenuta con successo!");
 
-            groupPasswords.put(groupName, password);
-            groupConnections.putIfAbsent(groupName, new ArrayList<>());
-            groupConnections.get(groupName).add(this);
+            } else out.println("Password errata. Riprova premendo il pulsante LEAVE.");
+//            if (!groupPasswords.containsKey(groupName)) {
+//                out.println("Il gruppo con questo nome non esiste. Riprova premendo il pulsante LEAVE.");
+//                return false;
+//            } else {
+//
+//                String password = in.readLine();
+//
+//                if (!password.equals(groupPasswords.get(groupName))) {
+//                    out.println("Password errata. Riprova premendo il pulsante LEAVE.");
+//                    return false;
+//                } else {
+//                    groupConnections.putIfAbsent(groupName, new ArrayList<>());
+//                    groupConnections.get(groupName).add(this);
+//                    this.groupName = groupName;
+//                    joined = true;
+//                    out.println("Unione al gruppo avvenuta con successo!");
+        }
+        private void createGroup() throws IOException {
+            groupName = in.readLine();
 
-            this.groupName = groupName;
-            out.println("Gruppo creato con successo!");
+            System.out.println("il nome del tuo gruppo " + groupName);
+            boolean exist = false;
+//            if (groupPasswords.containsKey(groupName)) {
+//                out.println("Il gruppo con questo nome esiste già. Riprova premendo il pulsante LEAVE.");
+//                return;
+//            }
+            for (ServerGroup g : groups) {
+                if (g.getGroupName().equalsIgnoreCase(groupName)) {
+                    exist = true;
+                    System.out.println("il gruppo esiste stronzo");
+                    break;
+                }
+            }
+            if (!exist) {
+                String password = in.readLine();
+                //boolean privacy = Boolean.parseBoolean(in.readLine());
+                group.setGroupName(groupName);
+                group.setGroupPassword(password);
+                out.println("Gruppo creato con successo!");
+                //group.setPrivacy(privacy);
+                askUsername();
+                group.setClients(this);
+                groups.add(group);
+
+                //            groupPasswords.put(groupName, password);
+                //            groupConnections.putIfAbsent(groupName, new ArrayList<>());
+                //            groupConnections.get(groupName).add(this);
+            } else
+                out.println("Il gruppo con questo nome esiste già. Riprova premendo il pulsante LEAVE.");
+
         }
 
 
@@ -189,16 +250,18 @@ public class Server implements Runnable {
                 handleGroupOptions();
 
                 // Loop per gestire la scelta tra creare un nuovo gruppo o unirsi a uno esistente
+                System.out.println("Il group name vale: " + groupName);
                 while (groupName == null) {
                     handleGroupOptions();
                 }
 
                 //out.println("Inserisci il tuo nickname:");
-                nickname = in.readLine();
-                if (nickname.equalsIgnoreCase("/quit") || nickname.equalsIgnoreCase("/nome") || nickname.equalsIgnoreCase("/info"))
-                    shutdown();
-                System.out.println(nickname + " Connesso!");
-                broadcastToGroup(groupName, nickname + " è entrato nel gruppo");
+//                nickname = in.readLine();
+//                if (nickname.equalsIgnoreCase("/quit") || nickname.equalsIgnoreCase("/nome") || nickname.equalsIgnoreCase("/info"))
+//                    shutdown();
+//                System.out.println(nickname + " Connesso!");
+//                broadcastToGroup(groupName, nickname + " è entrato nel gruppo");
+
 
                 String message;
                 while ((message = in.readLine()) != null) {
@@ -221,6 +284,19 @@ public class Server implements Runnable {
                 }
             } catch (IOException e) {
                 shutdown();
+            }
+        }
+
+        private void askUsername() throws IOException {
+            out.println("Inserisci il tuo nickname:");
+            nickname = in.readLine();
+            if (nickname.equalsIgnoreCase("/quit") || nickname.equalsIgnoreCase("/nome") || nickname.equalsIgnoreCase("/info"))
+                shutdown();
+            else {
+                System.out.println(nickname + " Connesso!");
+                System.out.println("il group name è : " + groupName);//
+                broadcastToGroup(groupName, nickname + " è entrato nel gruppo");
+
             }
         }
 
@@ -249,14 +325,15 @@ public class Server implements Runnable {
                     client.close();
                 }
                 // Rimuovi il gestore della connessione dal gruppo
-                if (groupName != null && groupConnections.containsKey(groupName)) {
-                    groupConnections.get(groupName).remove(this);
-                    // Se non ci sono più connessioni nel gruppo, rimuovi il gruppo
-                    if (groupConnections.get(groupName).isEmpty()) {
-                        groupConnections.remove(groupName);
-                        groupPasswords.remove(groupName);
-                    }
-                }
+//                if (groupName != null && groupConnections.containsKey(groupName)) {
+//                    groupConnections.get(groupName).remove(this);
+//                    // Se non ci sono più connessioni nel gruppo, rimuovi il gruppo
+//                    if (groupConnections.get(groupName).isEmpty()) {
+//                        groupConnections.remove(groupName);
+//                        groupPasswords.remove(groupName);
+//                    }
+//                }
+                groups.removeIf(g -> g.getClients().isEmpty());
             } catch (IOException e) {
                 // ignore
             }
