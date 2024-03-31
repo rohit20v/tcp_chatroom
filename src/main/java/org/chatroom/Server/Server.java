@@ -47,8 +47,19 @@ public class Server implements Runnable {
     }
 
     // Aggiunto un metodo per ottenere la lista di connessioni di un gruppo specifico
-    public synchronized List<ConnectionHandler> getGroupConnections(String groupName) {
-        return groupConnections.getOrDefault(groupName, new ArrayList<>());
+    public synchronized String getGroupConnections(String groupName) {
+        String res = "";
+        for (ServerGroup g: groups) {
+            if(g.getGroupName().equalsIgnoreCase(groupName)){
+                for (ConnectionHandler ch:g.getClients()) {
+                   res += ch.getNickname() + "\n";
+
+                }
+                break;
+            }
+
+        }
+        return res;
     }
 
     // Aggiunto un metodo per inviare un messaggio a un gruppo specifico
@@ -135,7 +146,6 @@ public class Server implements Runnable {
                     createGroup();
                     break;
                 case "2":
-                    System.out.println("semo denro la funzione pe joinare");
                     JoinGroup();
                     break;
                 case "3":
@@ -206,7 +216,6 @@ public class Server implements Runnable {
             for (ServerGroup g : groups) {
                 if (g.getGroupName().equalsIgnoreCase(groupName)) {
                     exist = true;
-                    System.out.println("il gruppo esiste stronzo");
                     break;
                 }
             }
@@ -220,10 +229,6 @@ public class Server implements Runnable {
                 askUsername();
                 group.setClients(this);
                 groups.add(group);
-
-                //            groupPasswords.put(groupName, password);
-                //            groupConnections.putIfAbsent(groupName, new ArrayList<>());
-                //            groupConnections.get(groupName).add(this);
             } else
                 out.println("Il gruppo con questo nome esiste già. Riprova premendo il pulsante LEAVE.");
 
@@ -299,15 +304,11 @@ public class Server implements Runnable {
 
             }
         }
-
         // Metodo per mostrare i partecipanti al gruppo
         private void showGroupParticipants(String groupName) {
-            List<ConnectionHandler> participants = getGroupConnections(groupName);
-            if (!participants.isEmpty()) {
+            if (!getGroupConnections(groupName).isEmpty()) {
                 out.println("Partecipanti al gruppo " + groupName + ":");
-                for (ConnectionHandler participant : participants) {
-                    out.println("- " + participant.nickname);
-                }
+                out.println(getGroupConnections(groupName));
             } else {
                 out.println("Nessun partecipante nel gruppo " + groupName);
             }
@@ -324,15 +325,6 @@ public class Server implements Runnable {
                 if (!client.isClosed()) {
                     client.close();
                 }
-                // Rimuovi il gestore della connessione dal gruppo
-//                if (groupName != null && groupConnections.containsKey(groupName)) {
-//                    groupConnections.get(groupName).remove(this);
-//                    // Se non ci sono più connessioni nel gruppo, rimuovi il gruppo
-//                    if (groupConnections.get(groupName).isEmpty()) {
-//                        groupConnections.remove(groupName);
-//                        groupPasswords.remove(groupName);
-//                    }
-//                }
                 groups.removeIf(g -> g.getClients().isEmpty());
             } catch (IOException e) {
                 // ignore
