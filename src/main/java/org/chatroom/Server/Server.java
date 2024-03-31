@@ -116,12 +116,12 @@ public class Server implements Runnable {
             }
         }
     }
-
     class ConnectionHandler implements Runnable {
         private Socket client;
         private BufferedReader in;
         private PrintWriter out;
         private String groupName;
+
 
         public String getNickname() {
             return nickname;
@@ -157,7 +157,31 @@ public class Server implements Runnable {
                     break;
             }
         }
+        private void createGroup() throws IOException {
+            groupName = in.readLine();
+            System.out.println("il nome del tuo gruppo " + groupName);
+            boolean exist = false;
+            for (ServerGroup g : groups) {
+                if (g.getGroupName().equalsIgnoreCase(groupName)) {
+                    exist = true;
+                    break;
+                }
+            }
+            if (!exist) {
+                String password = in.readLine();
+                //boolean privacy = Boolean.parseBoolean(in.readLine());
+                group= new ServerGroup(groupName,password,false);
+                group.setGroupName(groupName);
+                group.setGroupPassword(password);
+                out.println("Gruppo creato con successo!");
+                //group.setPrivacy(privacy);
+                askUsername();
+                group.setClients(this);
+                groups.add(group);
+            } else
+                out.println("Il gruppo con questo nome esiste già. Riprova premendo il pulsante LEAVE.");
 
+        }
         private void JoinGroup() throws IOException {
             if (groups.isEmpty()) {
                 out.println("Non ci sono gruppi disponibili. Devi crearne uno nuovo.");
@@ -204,37 +228,6 @@ public class Server implements Runnable {
 //                    joined = true;
 //                    out.println("Unione al gruppo avvenuta con successo!");
         }
-        private void createGroup() throws IOException {
-            groupName = in.readLine();
-
-            System.out.println("il nome del tuo gruppo " + groupName);
-            boolean exist = false;
-//            if (groupPasswords.containsKey(groupName)) {
-//                out.println("Il gruppo con questo nome esiste già. Riprova premendo il pulsante LEAVE.");
-//                return;
-//            }
-            for (ServerGroup g : groups) {
-                if (g.getGroupName().equalsIgnoreCase(groupName)) {
-                    exist = true;
-                    break;
-                }
-            }
-            if (!exist) {
-                String password = in.readLine();
-                //boolean privacy = Boolean.parseBoolean(in.readLine());
-                group.setGroupName(groupName);
-                group.setGroupPassword(password);
-                out.println("Gruppo creato con successo!");
-                //group.setPrivacy(privacy);
-                askUsername();
-                group.setClients(this);
-                groups.add(group);
-            } else
-                out.println("Il gruppo con questo nome esiste già. Riprova premendo il pulsante LEAVE.");
-
-        }
-
-
         private void handleNicknameChange(String newNickname) {
             if (groupName != null) {
                 String oldNickname = nickname;
