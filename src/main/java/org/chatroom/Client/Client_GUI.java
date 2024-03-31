@@ -9,12 +9,9 @@ import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.io.*;
 import java.net.Socket;
-import java.util.StringTokenizer;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class Client_GUI extends JFrame {
-    private static String host = "localhost";
-    private static int port = 5555;
     private JPanel Form;
     private JPanel chatOptions;
     private JPanel chatArea;
@@ -37,6 +34,7 @@ public class Client_GUI extends JFrame {
     private JRadioButton pvtBtn;
     private JTextField renameTxt;
     private JButton renameBtn;
+    private InputStreamReader streamReader;
     private BufferedReader reader;
     private PrintWriter writer;
     private Socket socket;
@@ -62,7 +60,7 @@ public class Client_GUI extends JFrame {
             setVisible(true);
             setLocationRelativeTo(null);
 
-            createReader_Writer();
+//            createReader_Writer();
 
             startCreatingGroup();
             startJoiningGroup();
@@ -73,7 +71,7 @@ public class Client_GUI extends JFrame {
 
             sendMsg();
 
-            readMsg();
+//            readMsg();
 
             leaveChat();
 
@@ -97,34 +95,40 @@ public class Client_GUI extends JFrame {
     public void createSocket() {
         do {
             try {
-                this.socket = new Socket("localhost", 5555);
+                this.socket = new Socket("192.168.1.116", 5555);
                 System.out.println("Server up");
                 updateStatus(Color.decode("#3a86ff"), "Connected");
+//                readMsg();
                 break;
             } catch (Exception e) {
                 System.out.println("Server down");
                 updateStatus(Color.red, "Server is down");
             }
             try {
-                Thread.sleep(2000);
+                Thread.sleep(4000);
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);
             }
         } while (true);
+
     }
 
     private void updateStatus(Color green, String Connected) {
         SwingUtilities.invokeLater(() -> {
             this.statusLbl.setForeground(green);
             this.statusLbl.setText(Connected);
+            createReader_Writer();
+            readMsg();
         });
     }
 
     private void createReader_Writer() {
         if (this.socket != null) {
             try {
-                this.reader = new BufferedReader(new InputStreamReader(this.socket.getInputStream()));
+                this.streamReader = new InputStreamReader(this.socket.getInputStream());
+                this.reader = new BufferedReader(streamReader);
                 this.writer = new PrintWriter(this.socket.getOutputStream(), true);
+                updateStatus(Color.decode("#3a86ff"), "Connected");
             } catch (Exception e) {
                 System.out.println("Error:\n" + e.getMessage());
                 updateStatus(Color.red, "Server is down");
@@ -175,7 +179,6 @@ public class Client_GUI extends JFrame {
                     }
                 }
             } catch (Exception e) {
-                System.err.println("Server is down");
                 updateStatus(Color.red, "Server is down");
             }
         }).start();
