@@ -261,6 +261,8 @@ public class Server implements Runnable {
                     client.close();
                 }
                 groups.removeIf(g -> g.getClients().isEmpty());
+//                if (groups.get().getClients().isEmpty())
+//                groups.remove(this);
             } catch (IOException e) {
                 // ignore
             }
