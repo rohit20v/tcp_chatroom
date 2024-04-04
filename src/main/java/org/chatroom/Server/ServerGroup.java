@@ -3,19 +3,32 @@ package org.chatroom.Server;
 import java.util.ArrayList;
 
 public class ServerGroup {
-
+    private int id;
     private String groupName;//nome del gruppo
     private String groupPassword;//password del gruppo
     private ArrayList<Server.ConnectionHandler> clients;//array list che contiene i client di un gruppo
     private boolean privacy;//indica la privacy di un gruppo
-    private static int id;
+    private static int num_groups;
 
     public ServerGroup(String groupName, String groupPassword, boolean privacy) {
-        id += 1; //incremento variabile statica
+        num_groups += 1; //incremento variabile statica
+        this.id = num_groups;
         this.groupName = groupName;
         this.groupPassword = groupPassword;
         clients = new ArrayList<>();
         this.privacy = privacy;
+    }
+
+
+    @Override
+    public String toString() {
+        return "ServerGroup{" +
+               "id=" + id +
+               ", groupName='" + groupName + '\'' +
+               ", groupPassword='" + groupPassword + '\'' +
+               ", clients=" + clients +
+               ", privacy=" + privacy +
+               '}';
     }
 
     public ServerGroup() {
@@ -54,11 +67,26 @@ public class ServerGroup {
         this.privacy = privacy;
     }
 
-    public static int getId() {
+    public static int getNum_groups() {
+        return num_groups;
+    }
+
+    public static void setNum_groups(int num_groups) {
+        ServerGroup.num_groups = num_groups;
+    }
+
+    public int getId() {
         return id;
     }
 
-    public static void setId(int id) {
-        ServerGroup.id = id;
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public void removeClient(Server.ConnectionHandler client){
+        clients.stream()
+                .filter(c -> c.getNickname().equalsIgnoreCase(client.getNickname()))
+                .findFirst()
+                .ifPresent(clients::remove);
     }
 }

@@ -87,6 +87,7 @@ public class Server implements Runnable {
             System.out.println("Gruppi attivi:");
             int i = 0;
             for (ServerGroup g : groups) {
+                System.out.println(g);
                 i++;
                 if (g.isPrivacy()) {
                     writer.println(i + ") " + g.getGroupName() + " = " + "******" + "\n");
@@ -195,6 +196,7 @@ public class Server implements Runnable {
         @Override
         public void run() {
             try {
+
                 out = new PrintWriter(client.getOutputStream(), true);
                 in = new BufferedReader(new InputStreamReader(client.getInputStream()));
 
@@ -260,11 +262,26 @@ public class Server implements Runnable {
                 if (!client.isClosed()) {
                     client.close();
                 }
-                groups.removeIf(g -> g.getClients().isEmpty());
+                System.out.println("group is boutta be ded");
+                for (ServerGroup g: groups){
+                    g.removeClient(this);
+                }
+                groupListManager();
+
+
+                System.out.println("group removed");
 //                if (groups.get().getClients().isEmpty())
 //                groups.remove(this);
             } catch (IOException e) {
                 // ignore
+            }
+        }
+
+    }
+    private void groupListManager() {
+        for (ServerGroup g: groups){
+            if (g.getClients().isEmpty()){
+                groups.remove(g);
             }
         }
     }
