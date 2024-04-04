@@ -59,8 +59,6 @@ public class Client_GUI extends JFrame {
             setVisible(true);
             setLocationRelativeTo(null);
 
-//            createReader_Writer();
-
             startCreatingGroup();
             startJoiningGroup();
 
@@ -69,8 +67,6 @@ public class Client_GUI extends JFrame {
             setUsername();
 
             sendMsg();
-
-//            readMsg();
 
             leaveChat();
 
