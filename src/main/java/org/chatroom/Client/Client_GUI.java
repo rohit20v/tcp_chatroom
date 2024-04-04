@@ -34,7 +34,6 @@ public class Client_GUI extends JFrame {
     private JRadioButton pvtBtn;
     private JTextField renameTxt;
     private JButton renameBtn;
-    private InputStreamReader streamReader;
     private BufferedReader reader;
     private PrintWriter writer;
     private Socket socket;
@@ -80,6 +79,7 @@ public class Client_GUI extends JFrame {
 
         new Thread(this::createSocket).start();
     }
+
     private void swingStyle() {
         Form.setBorder(new EmptyBorder(10, 10, 10, 10));
         Form.setBackground(Color.decode("#0F1035"));
@@ -95,38 +95,51 @@ public class Client_GUI extends JFrame {
     public void createSocket() {
         do {
             try {
-                this.socket = new Socket("192.168.1.116", 5555);
+                this.socket = new Socket("localhost", 5555);
                 System.out.println("Server up");
                 updateStatus(Color.decode("#3a86ff"), "Connected");
-//                readMsg();
+
+                createReader_Writer();
+                readMsg();
                 break;
             } catch (Exception e) {
                 System.out.println("Server down");
                 updateStatus(Color.red, "Server is down");
+                shutdownClient();
             }
             try {
-                Thread.sleep(4000);
+                Thread.sleep(2000);
             } catch (InterruptedException e) {
-                throw new RuntimeException(e);
+                System.out.println("Server is down");
             }
         } while (true);
 
+    }
+
+    private void shutdownClient() {
+        try {
+            if (this.socket != null) {
+                socket.close();
+                reader.close();
+                writer.close();
+            }
+        } catch (Exception e) {
+            System.out.println("Server is closed");
+        }
     }
 
     private void updateStatus(Color green, String Connected) {
         SwingUtilities.invokeLater(() -> {
             this.statusLbl.setForeground(green);
             this.statusLbl.setText(Connected);
-            createReader_Writer();
-            readMsg();
+
         });
     }
 
     private void createReader_Writer() {
         if (this.socket != null) {
             try {
-                this.streamReader = new InputStreamReader(this.socket.getInputStream());
-                this.reader = new BufferedReader(streamReader);
+                this.reader = new BufferedReader(new InputStreamReader(this.socket.getInputStream()));
                 this.writer = new PrintWriter(this.socket.getOutputStream(), true);
                 updateStatus(Color.decode("#3a86ff"), "Connected");
             } catch (Exception e) {
@@ -164,24 +177,24 @@ public class Client_GUI extends JFrame {
     }
 
     private void readMsg() {
-        new Thread(() -> {
-            try {
-                while (true) {
-                    receivedMessage.set(reader.readLine());
-                    if (receivedMessage.get() != null && !receivedMessage.get().isEmpty()) {
-                        if (receivedMessage.get().endsWith("jpg") || receivedMessage.get().endsWith("png")) {
-                            System.out.println(receivedMessage);
-                            getImage(receivedMessage.get());
-                        } else {
-                            if (!receivedMessage.get().endsWith("momento.")) msgArea.append(receivedMessage.get() + "\n");
-                            else JOptionPane.showMessageDialog(this,  receivedMessage, "Groups", JOptionPane.ERROR_MESSAGE);
-                        }
+        try {
+            while (true) {
+                receivedMessage.set(reader.readLine());
+                if (receivedMessage.get() != null && !receivedMessage.get().isEmpty()) {
+                    if (receivedMessage.get().endsWith("jpg") || receivedMessage.get().endsWith("png")) {
+                        System.out.println(receivedMessage);
+                        getImage(receivedMessage.get());
+                    } else {
+                        if (!receivedMessage.get().endsWith("momento."))
+                            msgArea.append(receivedMessage.get() + "\n");
+                        else
+                            JOptionPane.showMessageDialog(this, receivedMessage, "Groups", JOptionPane.ERROR_MESSAGE);
                     }
                 }
-            } catch (Exception e) {
-                updateStatus(Color.red, "Server is down");
             }
-        }).start();
+        } catch (Exception e) {
+            updateStatus(Color.red, "Server is down");
+        }
     }
 
     private void getImage(String imgPath) {
@@ -235,7 +248,7 @@ public class Client_GUI extends JFrame {
                             usernameBtn.setEnabled(true);
                             leaveBtn.setEnabled(true);
                             usernameTxt.setEnabled(true);
-                        }else {
+                        } else {
                             createBtn.setEnabled(false);
                             leaveBtn.setEnabled(true);
                         }
@@ -373,6 +386,7 @@ public class Client_GUI extends JFrame {
                     leaveBtn.setForeground(Color.decode("#edf2fb"));
                 }
             }
+
             @Override
             public void mouseExited(MouseEvent e) {
                 if (leaveBtn.isEnabled()) {
@@ -392,6 +406,7 @@ public class Client_GUI extends JFrame {
                 }
 
             }
+
             @Override
             public void mouseExited(MouseEvent e) {
                 if (createBtn.isEnabled()) {
@@ -411,6 +426,7 @@ public class Client_GUI extends JFrame {
                 }
 
             }
+
             @Override
             public void mouseExited(MouseEvent e) {
                 if (joinBtn.isEnabled()) {
@@ -430,6 +446,7 @@ public class Client_GUI extends JFrame {
                 }
 
             }
+
             @Override
             public void mouseExited(MouseEvent e) {
                 if (usernameBtn.isEnabled()) {
@@ -449,6 +466,7 @@ public class Client_GUI extends JFrame {
                 }
 
             }
+
             @Override
             public void mouseExited(MouseEvent e) {
                 if (renameBtn.isEnabled()) {
@@ -468,6 +486,7 @@ public class Client_GUI extends JFrame {
                 }
 
             }
+
             @Override
             public void mouseExited(MouseEvent e) {
                 if (sendBtn.isEnabled()) {
@@ -487,6 +506,7 @@ public class Client_GUI extends JFrame {
                 }
 
             }
+
             @Override
             public void mouseExited(MouseEvent e) {
                 if (showGrpsBtn.isEnabled()) {
