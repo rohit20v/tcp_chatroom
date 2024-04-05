@@ -81,6 +81,7 @@ public class Client_GUI extends JFrame {
         Form.setBackground(Color.decode("#0F1035"));
         chatOptions.setBorder(new EmptyBorder(20, 10, 10, 10));
         chatArea.setBorder(new EmptyBorder(10, 10, 10, 10));
+        msgArea.setLineWrap(true);
 
         createBtn.setMinimumSize(new Dimension(111, 20));
         joinBtn.setMinimumSize(new Dimension(111, 20));
@@ -513,6 +514,8 @@ public class Client_GUI extends JFrame {
             }
         });
     }
+
+
 
 }
 
