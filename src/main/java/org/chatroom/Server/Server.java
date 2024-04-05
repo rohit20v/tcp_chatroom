@@ -53,7 +53,6 @@ public class Server implements Runnable {
     }
     // Aggiunto un metodo per inviare un messaggio a un gruppo specifico
     public synchronized void broadcastToGroup(String groupName, String message) {
-        System.out.println("Siamo nel broadcast");
         for (ServerGroup g : groups) {
             if (g.getGroupName().equalsIgnoreCase(groupName)) {
                 System.out.println("Ho trovato: " + groupName);
@@ -63,6 +62,7 @@ public class Server implements Runnable {
                 }
                 break;
             } else
+                //fixme levare questo sout
                 System.out.println("Sono uscito");
         }
     }
@@ -141,12 +141,13 @@ public class Server implements Runnable {
             }
             if (!exist) {
                 String password = in.readLine();
-                //boolean privacy = Boolean.parseBoolean(in.readLine());
-                group = new ServerGroup(groupName, password, false);
+                boolean privacy = Boolean.parseBoolean(in.readLine());
+                System.out.println(privacy);
+                group = new ServerGroup(groupName, password, privacy);
                 group.setGroupName(groupName);
                 group.setGroupPassword(password);
                 out.println("Gruppo creato con successo!");
-                //group.setPrivacy(privacy);
+                group.setPrivacy(privacy);
                 askUsername();
                 group.setClients(this);
                 groups.add(group);
@@ -200,8 +201,6 @@ public class Server implements Runnable {
                 out = new PrintWriter(client.getOutputStream(), true);
                 in = new BufferedReader(new InputStreamReader(client.getInputStream()));
 
-                handleGroupOptions();
-
                 // Loop per gestire la scelta tra creare un nuovo gruppo o unirsi a uno esistente
                 while (groupName == null) {
                     handleGroupOptions();
@@ -231,7 +230,6 @@ public class Server implements Runnable {
         }
 
         private void askUsername() throws IOException {
-            out.println("Inserisci il tuo nickname:");
             nickname = in.readLine();
             if (nickname.equalsIgnoreCase("/quit") || nickname.equalsIgnoreCase("/nome") || nickname.equalsIgnoreCase("/info"))
                 shutdown();

@@ -4,6 +4,8 @@ import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
@@ -40,6 +42,8 @@ public class Client_GUI extends JFrame {
     private String username;
     private AtomicReference<String> receivedMessage = new AtomicReference<>("");
 
+    private boolean pvt = false;
+
     public Client_GUI() {
         SwingUtilities.invokeLater(() -> {
             setContentPane(Form);
@@ -74,6 +78,7 @@ public class Client_GUI extends JFrame {
         });
 
         new Thread(this::createSocket).start();
+
     }
 
     private void swingStyle() {
@@ -222,10 +227,12 @@ public class Client_GUI extends JFrame {
                 grpCodeTxt.setEnabled(true);
                 createBtn.setEnabled(true);
                 showGrpsBtn.setEnabled(false);
+                pvtBtn.setEnabled(true);
                 createGroup();
             }
         });
     }
+
 
     private void createGroup() {
         createBtn.addActionListener(e -> {
@@ -233,6 +240,7 @@ public class Client_GUI extends JFrame {
                 if (!grpCodeTxt.getText().isEmpty() && !grpNameTxt.getText().isEmpty()) {
                     this.writer.println(grpNameTxt.getText());
                     this.writer.println(grpCodeTxt.getText());
+                    this.writer.println(pvtBtn.isSelected());
                     groupName.setText(grpNameTxt.getText());
                     grpNameTxt.setText("");
                     grpCodeTxt.setText("");
@@ -241,12 +249,14 @@ public class Client_GUI extends JFrame {
                             grpNameTxt.setEnabled(false);
                             grpCodeTxt.setEnabled(false);
                             createBtn.setEnabled(false);
+                            pvtBtn.setEnabled(false);
                             JOptionPane.showMessageDialog(this, "Enter username", "", JOptionPane.INFORMATION_MESSAGE);
                             usernameBtn.setEnabled(true);
                             leaveBtn.setEnabled(true);
                             usernameTxt.setEnabled(true);
                         } else {
                             createBtn.setEnabled(false);
+                            pvtBtn.setEnabled(false);
                             leaveBtn.setEnabled(true);
                         }
                     }).start();
@@ -271,6 +281,8 @@ public class Client_GUI extends JFrame {
                         grpCodeTxt.setEnabled(true);
                         joinBtn.setEnabled(true);
                         receivedMessage.set("");
+                        pvtBtn.setEnabled(false);
+
                         joinGroup();
                         showGrpsBtn.setEnabled(false);
                     }
