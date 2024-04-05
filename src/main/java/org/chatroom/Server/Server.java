@@ -7,6 +7,7 @@ import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.*;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -23,6 +24,7 @@ public class Server implements Runnable {
         group = new ServerGroup();
         done = false;
     }
+
     @Override
     public void run() {
         try {
@@ -38,7 +40,8 @@ public class Server implements Runnable {
             shutdown();
         }
     }
-    // Aggiunto un metodo per ottenere la lista di connessioni di un gruppo specifico
+
+
     public synchronized String getGroupConnections(String groupName) {
         String res = "";
         for (ServerGroup g : groups) {
@@ -51,21 +54,19 @@ public class Server implements Runnable {
         }
         return res;
     }
-    // Aggiunto un metodo per inviare un messaggio a un gruppo specifico
+
     public synchronized void broadcastToGroup(String groupName, String message) {
         for (ServerGroup g : groups) {
             if (g.getGroupName().equalsIgnoreCase(groupName)) {
-                System.out.println("Ho trovato: " + groupName);
                 List<ConnectionHandler> connections = g.getClients();
                 for (ConnectionHandler ch : connections) {
                     ch.sendMessage(message);
                 }
                 break;
-            } else
-                //fixme levare questo sout
-                System.out.println("Sono uscito");
+            }
         }
     }
+
     public void shutdown() {
         try {
             done = true;
@@ -80,11 +81,11 @@ public class Server implements Runnable {
             // ignore it
         }
     }
+
     public void showActiveGroups(PrintWriter writer) {
         if (groups.isEmpty()) {
             writer.println("Non ci sono gruppi attivi al momento");
         } else {
-            System.out.println("Gruppi attivi:");
             int i = 0;
             for (ServerGroup g : groups) {
                 System.out.println(g);
@@ -98,21 +99,21 @@ public class Server implements Runnable {
             }
         }
     }
+
     class ConnectionHandler implements Runnable {
         private Socket client;
         private BufferedReader in;
         private PrintWriter out;
         private String groupName;
+        private String nickname;
 
         public String getNickname() {
             return nickname;
         }
-        private String nickname;
-
         public ConnectionHandler(Socket client) {
-
             this.client = client;
         }
+
         private void handleGroupOptions() throws IOException {
             String choice = in.readLine();
             switch (choice) {
@@ -130,6 +131,7 @@ public class Server implements Runnable {
                     break;
             }
         }
+
         private void createGroup() throws IOException {
             groupName = in.readLine();
             boolean exist = false;
@@ -154,6 +156,7 @@ public class Server implements Runnable {
             } else
                 out.println("Il gruppo con questo nome esiste già. Riprova premendo il pulsante LEAVE.");
         }
+
         private void JoinGroup() throws IOException {
             if (groups.isEmpty()) {
                 out.println("Non ci sono gruppi disponibili. Devi crearne uno nuovo.");
@@ -161,6 +164,7 @@ public class Server implements Runnable {
                 isJoined();
             }
         }
+
         private void isJoined() throws IOException {
             groupName = in.readLine();
             ServerGroup tempGroup = null;
@@ -184,6 +188,7 @@ public class Server implements Runnable {
             } else out.println("Password errata. Riprova premendo il pulsante LEAVE.");
 
         }
+
         private void handleNicknameChange(String newNickname) {
             if (groupName != null) {
                 String oldNickname = nickname;
@@ -194,6 +199,7 @@ public class Server implements Runnable {
                 out.println("Devi essere in un gruppo per cambiare il nickname.");
             }
         }
+
         @Override
         public void run() {
             try {
@@ -239,6 +245,7 @@ public class Server implements Runnable {
 
             }
         }
+
         // Metodo per mostrare i partecipanti al gruppo
         private void showGroupParticipants(String groupName) {
             if (!getGroupConnections(groupName).isEmpty()) {
@@ -260,32 +267,23 @@ public class Server implements Runnable {
                 if (!client.isClosed()) {
                     client.close();
                 }
-                System.out.println("group is boutta be ded");
-                for (ServerGroup g: groups){
-                    g.removeClient(this);
-                }
                 groupListManager();
 
-
                 System.out.println("group removed");
-//                if (groups.get().getClients().isEmpty())
-//                groups.remove(this);
             } catch (IOException e) {
-                // ignore
+                System.out.println("Error removing client");
             }
         }
-
     }
-    private void groupListManager() {
-        for (ServerGroup g: groups){
-            if (g.getClients().isEmpty()){
-                groups.remove(g);
-            }
-        }
+
+    private synchronized void groupListManager() {
+        CopyOnWriteArrayList<ServerGroup> groups = new CopyOnWriteArrayList<>();
+// ...
+        groups.removeIf(g -> g.getClients().isEmpty());
     }
 
     public static void main(String[] args) {
         Server server = new Server();
-        new Thread(server).start(); // Eseguire il server in un nuovo thread
+        new Thread(server).start();
     }
 }
