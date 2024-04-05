@@ -7,6 +7,7 @@ import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.*;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -39,6 +40,7 @@ public class Server implements Runnable {
             shutdown();
         }
     }
+
 
     public synchronized String getGroupConnections(String groupName) {
         String res = "";
@@ -103,14 +105,12 @@ public class Server implements Runnable {
         private BufferedReader in;
         private PrintWriter out;
         private String groupName;
+        private String nickname;
 
         public String getNickname() {
             return nickname;
         }
-        private String nickname;
-
         public ConnectionHandler(Socket client) {
-
             this.client = client;
         }
 
@@ -207,6 +207,7 @@ public class Server implements Runnable {
                 out = new PrintWriter(client.getOutputStream(), true);
                 in = new BufferedReader(new InputStreamReader(client.getInputStream()));
 
+                // Loop per gestire la scelta tra creare un nuovo gruppo o unirsi a uno esistente
                 while (groupName == null) {
                     handleGroupOptions();
                 }
@@ -245,6 +246,7 @@ public class Server implements Runnable {
             }
         }
 
+        // Metodo per mostrare i partecipanti al gruppo
         private void showGroupParticipants(String groupName) {
             if (!getGroupConnections(groupName).isEmpty()) {
                 out.println("Partecipanti al gruppo " + groupName + ":");
@@ -265,29 +267,23 @@ public class Server implements Runnable {
                 if (!client.isClosed()) {
                     client.close();
                 }
-                for (ServerGroup g: groups){
-                    g.removeClient(this);
-                }
                 groupListManager();
-                System.out.println("group removed");
 
+                System.out.println("group removed");
             } catch (IOException e) {
-                // ignore
+                System.out.println("Error removing client");
             }
         }
-
     }
 
-    private void groupListManager() {
-        for (ServerGroup g: groups){
-            if (g.getClients().isEmpty()){
-                groups.remove(g);
-            }
-        }
+    private synchronized void groupListManager() {
+        CopyOnWriteArrayList<ServerGroup> groups = new CopyOnWriteArrayList<>();
+// ...
+        groups.removeIf(g -> g.getClients().isEmpty());
     }
 
     public static void main(String[] args) {
         Server server = new Server();
-        new Thread(server).start(); // Eseguire il server in un nuovo thread
+        new Thread(server).start();
     }
 }

@@ -4,8 +4,6 @@ import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
@@ -42,12 +40,11 @@ public class Client_GUI extends JFrame {
     private String username;
     private AtomicReference<String> receivedMessage = new AtomicReference<>("");
 
-    private boolean pvt = false;
-
     public Client_GUI() {
         SwingUtilities.invokeLater(() -> {
             setContentPane(Form);
             swingStyle();
+
             msgArea.setEditable(false);
             msgTxt.setEnabled(false);
             sendBtn.setEnabled(false);
@@ -81,19 +78,7 @@ public class Client_GUI extends JFrame {
 
     }
 
-    private void swingStyle() {
-        Form.setBorder(new EmptyBorder(10, 10, 10, 10));
-        Form.setBackground(Color.decode("#0F1035"));
-        chatOptions.setBorder(new EmptyBorder(20, 10, 10, 10));
-        chatArea.setBorder(new EmptyBorder(10, 10, 10, 10));
-
-        createBtn.setMinimumSize(new Dimension(111, 20));
-        joinBtn.setMinimumSize(new Dimension(111, 20));
-        pvtBtn.setOpaque(false);
-        buttonHoverFx();
-    }
-
-    public void createSocket() {
+    private void createSocket() {
         do {
             try {
                 this.socket = new Socket("localhost", 5555);
@@ -107,14 +92,13 @@ public class Client_GUI extends JFrame {
                 System.out.println("Server down");
                 updateStatus(Color.red, "Server is down");
                 shutdownClient();
-            }
-            try {
-                Thread.sleep(2000);
-            } catch (InterruptedException e) {
-                System.out.println("Server is down");
+                try {
+                    Thread.sleep(2000);
+                } catch (InterruptedException ex) {
+                    //ignore
+                }
             }
         } while (true);
-
     }
 
     private void shutdownClient() {
@@ -183,7 +167,6 @@ public class Client_GUI extends JFrame {
                 receivedMessage.set(reader.readLine());
                 if (receivedMessage.get() != null && !receivedMessage.get().isEmpty()) {
                     if (receivedMessage.get().endsWith("jpg") || receivedMessage.get().endsWith("png")) {
-                        System.out.println(receivedMessage);
                         getImage(receivedMessage.get());
                     } else {
                         if (!receivedMessage.get().endsWith("momento."))
@@ -526,6 +509,31 @@ public class Client_GUI extends JFrame {
         });
     }
 
+    private void swingStyle() {
+        Form.setBorder(new EmptyBorder(10, 10, 10, 10));
+        Form.setBackground(Color.decode("#0F1035"));
+        chatOptions.setBorder(new EmptyBorder(20, 10, 10, 10));
+        chatArea.setBorder(new EmptyBorder(10, 10, 10, 10));
+        msgArea.setLineWrap(true);
+        msgArea.setBorder(new EmptyBorder(5, 5, 5, 5));
+        setRoundedCornerUI(sendBtn, Color.decode("#57cc99"));
+        setRoundedCornerUI(askCreateBtn, Color.cyan);
+        setRoundedCornerUI(askJoinBtn, Color.cyan);
+        setRoundedCornerUI(createBtn, Color.blue);
+        setRoundedCornerUI(joinBtn, Color.blue);
+        setRoundedCornerUI(usernameBtn, Color.blue);
+        setRoundedCornerUI(renameBtn, Color.blue);
+        setRoundedCornerUI(leaveBtn, Color.red);
+        setRoundedCornerUI(chatOptions, Color.red);
+        buttonHoverFx();
+    }
+
+    private static void setRoundedCornerUI(JComponent component, Color c) {
+        component.setBorder(BorderFactory.createEmptyBorder(10, 15, 10, 15)); // Add padding
+        component.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(c, 0),
+                new RoundedBorder(8))); // Set corner radius
+    }
 }
 
 
