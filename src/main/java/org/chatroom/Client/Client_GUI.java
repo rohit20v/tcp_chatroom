@@ -9,6 +9,8 @@ import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.io.*;
 import java.net.Socket;
+import java.net.URL;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class Client_GUI extends JFrame {
@@ -34,6 +36,7 @@ public class Client_GUI extends JFrame {
     private JRadioButton pvtBtn;
     private JTextField renameTxt;
     private JButton renameBtn;
+    private JScrollPane scrollPane;
     private BufferedReader reader;
     private PrintWriter writer;
     private Socket socket;
@@ -139,14 +142,18 @@ public class Client_GUI extends JFrame {
             username = usernameTxt.getText();
             username = username.replace(" ", "_").trim();
             if (!username.isEmpty()) {
-                System.out.println(username);
-                writer.println(username.toUpperCase());
-                this.msgTxt.setEnabled(true);
-                this.sendBtn.setEnabled(true);
-                this.usernameBtn.setEnabled(false);
-                this.usernameTxt.setEnabled(false);
-                this.renameBtn.setEnabled(true);
-                this.renameTxt.setEnabled(true);
+                if (username.length() > 16)
+                    JOptionPane.showMessageDialog(null, "Username too long", "", JOptionPane.ERROR_MESSAGE);
+                else {
+                    System.out.println(username);
+                    writer.println(username.toUpperCase());
+                    this.msgTxt.setEnabled(true);
+                    this.sendBtn.setEnabled(true);
+                    this.usernameBtn.setEnabled(false);
+                    this.usernameTxt.setEnabled(false);
+                    this.renameBtn.setEnabled(true);
+                    this.renameTxt.setEnabled(true);
+                }
             }
         });
     }
@@ -155,7 +162,18 @@ public class Client_GUI extends JFrame {
         sendBtn.addActionListener(e -> {
             String msgToSend = msgTxt.getText().trim();
             if (!msgToSend.isEmpty()) {
-                writer.println(msgToSend);
+                if (msgToSend.startsWith("/cat")) {
+                    try {
+                        ImageIcon icon = fetchCat();
+                        ImageIcon resizedIcon = new ImageIcon(Objects.requireNonNull(icon).getImage().getScaledInstance(120, 120, Image.SCALE_SMOOTH));
+                        JOptionPane.showMessageDialog(null, resizedIcon, "", JOptionPane.PLAIN_MESSAGE);
+                    } catch (Exception ex) {
+                        JOptionPane.showMessageDialog(null, "Error fetching data from the CATAAS API", "API Error", JOptionPane.ERROR_MESSAGE);
+
+                    }
+                } else {
+                    writer.println(msgToSend);
+                }
             }
             msgTxt.setText("");
         });
@@ -166,34 +184,14 @@ public class Client_GUI extends JFrame {
             while (true) {
                 receivedMessage.set(reader.readLine());
                 if (receivedMessage.get() != null && !receivedMessage.get().isEmpty()) {
-                    if (receivedMessage.get().endsWith("jpg") || receivedMessage.get().endsWith("png")) {
-                        getImage(receivedMessage.get());
-                    } else {
-                        if (!receivedMessage.get().endsWith("momento."))
-                            msgArea.append(receivedMessage.get() + "\n");
-                        else
-                            JOptionPane.showMessageDialog(this, receivedMessage, "Groups", JOptionPane.ERROR_MESSAGE);
-                    }
+                    if (!receivedMessage.get().endsWith("momento."))
+                        msgArea.append(receivedMessage.get() + "\n");
+                    else
+                        JOptionPane.showMessageDialog(this, receivedMessage, "Groups", JOptionPane.ERROR_MESSAGE);
                 }
             }
         } catch (Exception e) {
             updateStatus(Color.red, "Server is down");
-        }
-    }
-
-    private void getImage(String imgPath) {
-        try {
-            File imageFile = new File(imgPath.substring(imgPath.indexOf(" ")).trim());
-            if (imageFile.exists()) {
-                System.out.println("EXISTS");
-                BufferedImage image = ImageIO.read(imageFile);
-                ImageIcon icon = new ImageIcon(new ImageIcon(image).getImage().getScaledInstance(242, 269, Image.SCALE_DEFAULT));
-                JOptionPane.showMessageDialog(this, new JLabel(icon));
-            } else System.out.println("Doesnt exist");
-        } catch (IOException e) {
-            System.err.println("Error reading image: " + e.getMessage());
-            updateStatus(Color.red, "Server is down");
-
         }
     }
 
@@ -210,41 +208,49 @@ public class Client_GUI extends JFrame {
                 createBtn.setEnabled(true);
                 showGrpsBtn.setEnabled(false);
                 pvtBtn.setEnabled(true);
-                createGroup();
+                validateGroup();
             }
         });
     }
 
 
-    private void createGroup() {
+    private void validateGroup() {
         createBtn.addActionListener(e -> {
             if (createBtn.isEnabled()) {
                 if (!grpCodeTxt.getText().isEmpty() && !grpNameTxt.getText().isEmpty()) {
-                    this.writer.println(grpNameTxt.getText());
-                    this.writer.println(grpCodeTxt.getText());
-                    this.writer.println(pvtBtn.isSelected());
-                    groupName.setText(grpNameTxt.getText());
-                    grpNameTxt.setText("");
-                    grpCodeTxt.setText("");
-                    new Thread(() -> {
-                        if (!receivedMessage.get().endsWith("LEAVE.")) {
-                            grpNameTxt.setEnabled(false);
-                            grpCodeTxt.setEnabled(false);
-                            createBtn.setEnabled(false);
-                            pvtBtn.setEnabled(false);
-                            JOptionPane.showMessageDialog(this, "Enter username", "", JOptionPane.INFORMATION_MESSAGE);
-                            usernameBtn.setEnabled(true);
-                            leaveBtn.setEnabled(true);
-                            usernameTxt.setEnabled(true);
-                        } else {
-                            createBtn.setEnabled(false);
-                            pvtBtn.setEnabled(false);
-                            leaveBtn.setEnabled(true);
-                        }
-                    }).start();
+                    if (grpCodeTxt.getText().length() > 10 || grpNameTxt.getText().length() > 10)
+                        JOptionPane.showMessageDialog(null, "Group name and code mustn't be that long", "", JOptionPane.ERROR_MESSAGE);
+                    else {
+                        createGroup();
+                    }
                 }
             }
         });
+    }
+
+    private void createGroup() {
+        this.writer.println(grpNameTxt.getText());
+        this.writer.println(grpCodeTxt.getText());
+        this.writer.println(pvtBtn.isSelected());
+        groupName.setText(grpNameTxt.getText());
+        grpNameTxt.setText("");
+        grpCodeTxt.setText("");
+        new Thread(() -> {
+            if (!receivedMessage.get().endsWith("LEAVE.")) {
+                grpNameTxt.setEnabled(false);
+                grpCodeTxt.setEnabled(false);
+                createBtn.setEnabled(false);
+                pvtBtn.setEnabled(false);
+                JOptionPane.showMessageDialog(this, "Enter username", "", JOptionPane.INFORMATION_MESSAGE);
+                usernameBtn.setEnabled(true);
+                leaveBtn.setEnabled(true);
+                usernameTxt.setEnabled(true);
+            } else {
+                createBtn.setEnabled(false);
+                pvtBtn.setEnabled(false);
+                leaveBtn.setEnabled(true);
+            }
+        }).start();
     }
 
     private void startJoiningGroup() {
@@ -512,10 +518,14 @@ public class Client_GUI extends JFrame {
     private void swingStyle() {
         Form.setBorder(new EmptyBorder(10, 10, 10, 10));
         Form.setBackground(Color.decode("#0F1035"));
+
         chatOptions.setBorder(new EmptyBorder(20, 10, 10, 10));
         chatArea.setBorder(new EmptyBorder(10, 10, 10, 10));
+
+
         msgArea.setLineWrap(true);
         msgArea.setBorder(new EmptyBorder(5, 5, 5, 5));
+
         setRoundedCornerUI(sendBtn, Color.decode("#57cc99"));
         setRoundedCornerUI(askCreateBtn, Color.cyan);
         setRoundedCornerUI(askJoinBtn, Color.cyan);
@@ -525,14 +535,56 @@ public class Client_GUI extends JFrame {
         setRoundedCornerUI(renameBtn, Color.blue);
         setRoundedCornerUI(leaveBtn, Color.red);
         setRoundedCornerUI(chatOptions, Color.red);
+
+        renderLogo();
         buttonHoverFx();
     }
 
+    private void renderLogo() {
+        BufferedImage img = loadImage("src/main/resources/mt_room.png");
+        BufferedImage resizedImg = resizeImage(Objects.requireNonNull(img), 300, 150);
+        displayImage(resizedImg);
+    }
+
+    public static BufferedImage loadImage(String filePath) {
+        try {
+            return ImageIO.read(new java.io.File(filePath));
+        } catch (Exception e) {
+            System.out.println("Image not found: ");
+            return null;
+        }
+    }
+
+    public static BufferedImage resizeImage(BufferedImage originalImage, int width, int height) {
+        BufferedImage resizedImage = new BufferedImage(width, height, originalImage.getType());
+        Graphics2D g = resizedImage.createGraphics();
+        g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
+        g.drawImage(originalImage, 0, 0, width, height, null);
+        g.dispose();
+        return resizedImage;
+    }
+
+    public void displayImage(BufferedImage image) {
+        ImageIcon icon = new ImageIcon(image);
+        gc_name.setIcon(icon);
+    }
+
+    private static ImageIcon fetchCat() {
+        try {
+            URL imageUrl = new URL("https://cataas.com/cat");
+            Image image = ImageIO.read(imageUrl);
+            return new ImageIcon(image);
+        } catch (IOException e) {
+            System.out.println("Error fetching image");
+            return null;
+        }
+    }
+
     private static void setRoundedCornerUI(JComponent component, Color c) {
-        component.setBorder(BorderFactory.createEmptyBorder(10, 15, 10, 15)); // Add padding
+        component.setBorder(BorderFactory.createEmptyBorder(10, 15, 10, 15));
         component.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(c, 0),
-                new RoundedBorder(8))); // Set corner radius
+                new RoundedBorder(8)));
     }
 }
 
