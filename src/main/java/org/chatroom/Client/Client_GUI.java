@@ -303,7 +303,7 @@ public class Client_GUI extends JFrame {
             usernameTxt.setEnabled(true);
         } else {
             joinBtn.setEnabled(false);
-            usernameBtn.setEnabled(true);
+            usernameBtn.setEnabled(false);
             leaveBtn.setEnabled(false);
             usernameTxt.setEnabled(false);
         }
