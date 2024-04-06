@@ -153,6 +153,7 @@ public class Client_GUI extends JFrame {
                     this.usernameTxt.setEnabled(false);
                     this.renameBtn.setEnabled(true);
                     this.renameTxt.setEnabled(true);
+                    this.leaveBtn.setEnabled(true);
                 }
             }
         });
@@ -236,14 +237,14 @@ public class Client_GUI extends JFrame {
         grpNameTxt.setText("");
         grpCodeTxt.setText("");
         new Thread(() -> {
-            if (!receivedMessage.get().endsWith("LEAVE.")) {
+            if (!receivedMessage.get().endsWith("LEAVE")) {
                 grpNameTxt.setEnabled(false);
                 grpCodeTxt.setEnabled(false);
                 createBtn.setEnabled(false);
                 pvtBtn.setEnabled(false);
                 JOptionPane.showMessageDialog(this, "Enter username", "", JOptionPane.INFORMATION_MESSAGE);
                 usernameBtn.setEnabled(true);
-                leaveBtn.setEnabled(true);
+                leaveBtn.setEnabled(false);
                 usernameTxt.setEnabled(true);
             } else {
                 createBtn.setEnabled(false);
@@ -298,12 +299,12 @@ public class Client_GUI extends JFrame {
             grpCodeTxt.setEnabled(false);
             joinBtn.setEnabled(false);
             usernameBtn.setEnabled(true);
-            leaveBtn.setEnabled(true);
+            leaveBtn.setEnabled(false);
             usernameTxt.setEnabled(true);
         } else {
             joinBtn.setEnabled(false);
-            usernameBtn.setEnabled(false);
-            leaveBtn.setEnabled(true);
+            usernameBtn.setEnabled(true);
+            leaveBtn.setEnabled(false);
             usernameTxt.setEnabled(false);
         }
     }
