@@ -155,7 +155,7 @@ public class Server implements Runnable {
                 group.setClients(this);
                 groups.add(group);
             } else
-                out.println("Il gruppo con questo nome esiste già. Riprova premendo il pulsante LEAVE.");
+                out.println("Il gruppo con questo nome esiste già. Riprova premendo il pulsante LEAVE!");
         }
 
         private void JoinGroup() throws IOException {
@@ -178,15 +178,19 @@ public class Server implements Runnable {
                 }
             }
             if (!Isthere) {
-                out.println("Il groupp con questo nome non esiste. Riprova con LEAVE!.");
+                out.println("Il groupp con questo nome non esiste. Riprova con LEAVE!");
             }
             String password = in.readLine();
             if (Objects.requireNonNull(tempGroup).getGroupPassword().equalsIgnoreCase(password)) {
+                System.out.println("Password trovato");
                 askUsername();
                 tempGroup.setClients(this);
                 out.println("Unione al gruppo avvenuta con successo!");
 
-            } else out.println("Password errata. Riprova premendo il pulsante LEAVE.");
+            } else{
+                nickname = "Unknown User";
+                out.println("Password errata. Riprova premendo il pulsante LEAVE!");
+            }
         }
 
         private void handleNicknameChange(String newNickname) {
