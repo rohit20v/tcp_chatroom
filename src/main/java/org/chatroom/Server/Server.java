@@ -224,8 +224,6 @@ public class Server implements Runnable {
 
                     } else if (message.startsWith("/info")) {
                         showGroupParticipants(groupName);
-                    } else if (message.startsWith("/cat")) {
-                        broadcastToGroup(groupName, Cat.sendCat("/cat"));
                     } else {
                         broadcastToGroup(groupName, nickname + ": " + message);
                     }
@@ -266,24 +264,16 @@ public class Server implements Runnable {
                 if (!client.isClosed()) {
                     client.close();
                 }
-                System.out.println("Server is boutta be ded");
-//                groups.removeIf(g -> g.getClients().isEmpty());
                 for (ServerGroup g: groups){
                     g.removeClient(this);
                 }
-                groupListManager();
+                groups.removeIf(g -> g.getClients().isEmpty());
 
                 System.out.println("group removed");
             } catch (IOException e) {
                 System.out.println("Error removing client");
             }
         }
-    }
-
-    private synchronized void groupListManager() {
-        CopyOnWriteArrayList<ServerGroup> groups = new CopyOnWriteArrayList<>();
-// ...
-        groups.removeIf(g -> g.getClients().isEmpty());
     }
 
     public static void main(String[] args) {
