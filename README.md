@@ -41,7 +41,7 @@ Compilare il codice sorgente del client.
 Avviare l'applicazione client.
 
 >*java Client*
-
+ 
 Eseguire la propria scelta e successivamente inserire un username per entrare dentro a un gruppo.
 
 ## Funzionalità
