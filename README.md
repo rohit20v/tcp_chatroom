@@ -2,7 +2,7 @@
   <img src="/src/main/resources/mt_room.png">
 </kbd>
 
-# Simple TCP/IP chatroom written in Java swing
+# Simple TCP/IP chatroom written in Java swing ✨
 Questo progetto implementa una semplice chatroom in Java,
 composta da un server e un'interfaccia grafica per il client, il quale
 potrà creare un nuovo gruppo, oppure unirsi a uno già esistente.
