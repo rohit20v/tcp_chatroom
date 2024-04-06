@@ -110,6 +110,7 @@ public class Server implements Runnable {
         public String getNickname() {
             return nickname;
         }
+
         public ConnectionHandler(Socket client) {
             this.client = client;
         }
@@ -186,7 +187,6 @@ public class Server implements Runnable {
                 out.println("Unione al gruppo avvenuta con successo!");
 
             } else out.println("Password errata. Riprova premendo il pulsante LEAVE.");
-
         }
 
         private void handleNicknameChange(String newNickname) {
@@ -207,7 +207,6 @@ public class Server implements Runnable {
                 out = new PrintWriter(client.getOutputStream(), true);
                 in = new BufferedReader(new InputStreamReader(client.getInputStream()));
 
-                // Loop per gestire la scelta tra creare un nuovo gruppo o unirsi a uno esistente
                 while (groupName == null) {
                     handleGroupOptions();
                 }
@@ -226,6 +225,8 @@ public class Server implements Runnable {
 
                     } else if (message.startsWith("/info")) {
                         showGroupParticipants(groupName);
+                    } else if (message.startsWith("/cat")) {
+                        broadcastToGroup(groupName, Cat.sendCat("/cat"));
                     } else {
                         broadcastToGroup(groupName, nickname + ": " + message);
                     }
@@ -242,7 +243,6 @@ public class Server implements Runnable {
             else {
                 System.out.println(nickname + " Connesso!");
                 broadcastToGroup(groupName, nickname + " è entrato nel gruppo");
-
             }
         }
 
