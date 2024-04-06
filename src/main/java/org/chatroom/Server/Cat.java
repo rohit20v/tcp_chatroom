@@ -23,7 +23,7 @@ public class Cat {
         }
     }
 
-    public static void sendCat(String endpoint){
+    public static String sendCat(String endpoint){
         try {
             BufferedReader reader = new BufferedReader(new InputStreamReader(Objects.requireNonNull(getCat(endpoint))));
             String line;
@@ -31,7 +31,7 @@ public class Cat {
             while ((line = reader.readLine()) != null) {
                 response.append(line);
             }
-            System.out.println(response.toString());
+            return response.toString();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

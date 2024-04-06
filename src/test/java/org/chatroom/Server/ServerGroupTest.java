@@ -8,5 +8,6 @@ class ServerGroupTest {
 
     @org.junit.jupiter.api.Test
     void removeClient() {
+        
     }
 }

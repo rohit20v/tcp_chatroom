@@ -178,7 +178,7 @@ public class Server implements Runnable {
                 }
             }
             if (!Isthere) {
-                out.println("Il gruppo esiste già. Riprova premendo il pulsante LEAVE.");
+                out.println("Il groupp con questo nome non esiste. Riprova con LEAVE!.");
             }
             String password = in.readLine();
             if (Objects.requireNonNull(tempGroup).getGroupPassword().equalsIgnoreCase(password)) {
@@ -203,7 +203,6 @@ public class Server implements Runnable {
         @Override
         public void run() {
             try {
-
                 out = new PrintWriter(client.getOutputStream(), true);
                 in = new BufferedReader(new InputStreamReader(client.getInputStream()));
 
@@ -266,6 +265,11 @@ public class Server implements Runnable {
                 out.close();
                 if (!client.isClosed()) {
                     client.close();
+                }
+                System.out.println("Server is boutta be ded");
+//                groups.removeIf(g -> g.getClients().isEmpty());
+                for (ServerGroup g: groups){
+                    g.removeClient(this);
                 }
                 groupListManager();
 
