@@ -290,7 +290,7 @@ public class Client_GUI extends JFrame {
     }
 
     private void verifyJoining() {
-        if (!receivedMessage.get().endsWith("LEAVE.") && !receivedMessage.get().endsWith("valida.")) {
+        if (!receivedMessage.get().endsWith("LEAVE!") && !receivedMessage.get().endsWith("valida.")) {
             groupName.setText(grpNameTxt.getText());
             grpNameTxt.setText("");
             grpCodeTxt.setText("");
