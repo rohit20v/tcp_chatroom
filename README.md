@@ -1,4 +1,4 @@
-Logo in here
+![[Image description](https://github.com/rohit20v/tcp_chatroom/blob/master/src/main/resources/mt_room.png)]
 # Simple TCP/IP chatroom written in Java swing
 Questo progetto implementa una semplice chatroom in Java,
 composta da un server e un'interfaccia grafica per il client, il quale
