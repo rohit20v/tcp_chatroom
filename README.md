@@ -1,14 +1,18 @@
+Logo in here
 # Simple TCP/IP chatroom written in Java swing
-Questo progetto implementa una semplice chatroom in Java, composta da un server e un'interfaccia grafica per il client.
+Questo progetto implementa una semplice chatroom in Java,
+composta da un server e un'interfaccia grafica per il client, il quale
+potrà creare un nuovo gruppo, oppure unirsi a uno già esistente.
 
 ## Dipendenze
 **Java Development Kit (JDK) 8 o versioni successive**
 
 ## Server
-Il server è responsabile della gestione delle connessioni dei client e della comunicazione all'interno dei gruppi, con la loro gestione e i comandi utilizzabili dal client.
+Il server è responsabile della gestione delle connessioni dei client
+e della comunicazione all'interno dei gruppi, con la loro gestione e i comandi utilizzabili dal client.
 
 ## Utilizzo
-Compilare il codice sorgente del server.
+Compilare il codice sorgente del server in maniera tale da permettere la connessione dei client.
 
 >*javac Server.java*
 
@@ -23,10 +27,11 @@ Il server si metterà in ascolto sulla porta 5555 per le connessioni dei client.
 1. Creazione di nuovi gruppi e unione a gruppi esistenti.
 2. Comunicazione all'interno dei gruppi.
 3. Cambio del nickname degli utenti.
-4. Chiusura e gestione delle connessioni.
+4. Informazioni riguardanti i componenti del gruppo.
+5. Chiusura e gestione delle connessioni.
 
 ## Client
-Il client fornisce un'interfaccia grafica per interagire con il server e partecipare alle chat e interagirci.
+Il client fornisce un'interfaccia grafica per interagire con il server, partecipare alle chat e interagirci.
 
 ## Utilizzo
 Compilare il codice sorgente del client.
@@ -36,7 +41,7 @@ Compilare il codice sorgente del client.
 Avviare l'applicazione client.
 
 >*java Client*
-
+ 
 Eseguire la propria scelta e successivamente inserire un username per entrare dentro a un gruppo.
 
 ## Funzionalità
@@ -46,6 +51,7 @@ Eseguire la propria scelta e successivamente inserire un username per entrare de
 3. Creazione e unione a gruppi.
 4. Visualizzazione dei gruppi attivi.
 5. Cambio del nickname degli utenti.
+7. Visualizzazione utenti nel gruppo.
 6. Uscita dalla chat.
 
 
