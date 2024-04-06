@@ -7,7 +7,6 @@ import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.*;
-import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -117,6 +116,7 @@ public class Server implements Runnable {
 
         private void handleGroupOptions() throws IOException {
             String choice = in.readLine();
+            System.out.println(choice);
             switch (choice) {
                 case "1":
                     createGroup();
@@ -139,23 +139,22 @@ public class Server implements Runnable {
             for (ServerGroup g : groups) {
                 if (g.getGroupName().equalsIgnoreCase(groupName)) {
                     exist = true;
+                    System.out.println("Grouppo trovato");
                     break;
                 }
             }
+            String password = in.readLine();
+            boolean privacy = Boolean.parseBoolean(in.readLine());
             if (!exist) {
-                String password = in.readLine();
-                boolean privacy = Boolean.parseBoolean(in.readLine());
-                System.out.println(privacy);
+//                System.out.println(privacy);
                 group = new ServerGroup(groupName, password, privacy);
-                group.setGroupName(groupName);
-                group.setGroupPassword(password);
                 out.println("Gruppo creato con successo!");
-                group.setPrivacy(privacy);
+                System.out.println("Non esiste");
                 askUsername();
                 group.setClients(this);
                 groups.add(group);
             } else
-                out.println("Il gruppo con questo nome esiste già. Riprova premendo il pulsante LEAVE!");
+                out.println("Il gruppo con questo nome esiste già. Riprova premendo il pulsante LEAVE");
         }
 
         private void JoinGroup() throws IOException {
@@ -179,17 +178,18 @@ public class Server implements Runnable {
             }
             if (!Isthere) {
                 out.println("Il groupp con questo nome non esiste. Riprova con LEAVE!");
-            }
-            String password = in.readLine();
-            if (Objects.requireNonNull(tempGroup).getGroupPassword().equalsIgnoreCase(password)) {
-                System.out.println("Password trovato");
-                askUsername();
-                tempGroup.setClients(this);
-                out.println("Unione al gruppo avvenuta con successo!");
+            }else{
+                String password = in.readLine();
+                if (Objects.requireNonNull(tempGroup).getGroupPassword().equalsIgnoreCase(password)) {
+                    System.out.println("Password trovato");
+                    askUsername();
+                    tempGroup.setClients(this);
+                    out.println("Unione al gruppo avvenuta con successo!");
 
-            } else{
-                nickname = "Unknown User";
-                out.println("Password errata. Riprova premendo il pulsante LEAVE!");
+                } else {
+                    nickname = "Unknown User";
+                    out.println("Password errata. Riprova premendo il pulsante LEAVE!");
+                }
             }
         }
 
@@ -238,10 +238,11 @@ public class Server implements Runnable {
         }
 
         private void askUsername() throws IOException {
-            nickname = in.readLine();
-            if (nickname.equalsIgnoreCase("/quit") || nickname.equalsIgnoreCase("/nome") || nickname.equalsIgnoreCase("/info"))
-                shutdown();
-            else {
+            String tempNick = in.readLine();
+            if (tempNick.equalsIgnoreCase("/quit") || tempNick.equalsIgnoreCase("/nome") || tempNick.equalsIgnoreCase("/info")) {
+                out.println("Nickaname non valido");
+            } else {
+                nickname = tempNick;
                 System.out.println(nickname + " Connesso!");
                 broadcastToGroup(groupName, nickname + " è entrato nel gruppo");
             }
@@ -268,7 +269,7 @@ public class Server implements Runnable {
                 if (!client.isClosed()) {
                     client.close();
                 }
-                for (ServerGroup g: groups){
+                for (ServerGroup g : groups) {
                     g.removeClient(this);
                 }
                 groups.removeIf(g -> g.getClients().isEmpty());
