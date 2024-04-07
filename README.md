@@ -26,7 +26,8 @@ Avviare il server.
 ``` Java
 java Server
 ```
-Il server si metterà in ascolto sulla porta 5555 per le connessioni dei client.
+> [!tip]
+> Il server si metterà in ascolto sulla porta 5555 per le connessioni dei client.
 
 ## Funzionalità
 
