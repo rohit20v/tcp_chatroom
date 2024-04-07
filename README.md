@@ -51,8 +51,9 @@ Avviare l'applicazione client.
 ``` Java
 java Client
 ```
- 
 Eseguire la propria scelta e successivamente inserire un username per entrare dentro a un gruppo.
+
+[![](https://mermaid.ink/img/pako:eNpNj8GKwjAQhl8lzMkFfYEeFtZUFgTxsD3ZeBiScQ02MyVNEWn77qZ2F5zT8P0fzPwDWHEEBVwaudsrxqSq0rDK81XrxhOns9psPrcrLcxkU_expNuZKj2UZL2jblqonul4ZBpVWetImEh9R-nb83te3WVUu3ovnv9SWEOgGNC7_MowuwbSlQIZKPLqMN4MGJ6yh32SnwdbKFLsaQ196_KV0uNvxADFBZsu0xb5JBL-JXI-STwsVV-Npyd-P1DP?type=png)](https://mermaid.live/edit#pako:eNpNj8GKwjAQhl8lzMkFfYEeFtZUFgTxsD3ZeBiScQ02MyVNEWn77qZ2F5zT8P0fzPwDWHEEBVwaudsrxqSq0rDK81XrxhOns9psPrcrLcxkU_expNuZKj2UZL2jblqonul4ZBpVWetImEh9R-nb83te3WVUu3ovnv9SWEOgGNC7_MowuwbSlQIZKPLqMN4MGJ6yh32SnwdbKFLsaQ196_KV0uNvxADFBZsu0xb5JBL-JXI-STwsVV-Npyd-P1DP)
 
  ## Funzionalità
 
