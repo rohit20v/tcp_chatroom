@@ -26,7 +26,7 @@ public class ServerGroup {
                "id=" + id +
                ", groupName='" + groupName + '\'' +
                ", groupPassword='" + groupPassword + '\'' +
-               ", clients=" + clients +
+               ", clients=" + clients.toString() +
                ", privacy=" + privacy +
                '}';
     }

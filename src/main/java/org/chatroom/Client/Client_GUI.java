@@ -291,7 +291,7 @@ public class Client_GUI extends JFrame {
     }
 
     private void verifyJoining() {
-        if (!receivedMessage.get().endsWith("LEAVE!") && !receivedMessage.get().endsWith("valida.")) {
+        if (!receivedMessage.get().endsWith("LEAVE!")) {
             groupName.setText(grpNameTxt.getText());
             grpNameTxt.setText("");
             grpCodeTxt.setText("");
@@ -304,7 +304,7 @@ public class Client_GUI extends JFrame {
         } else {
             joinBtn.setEnabled(false);
             usernameBtn.setEnabled(false);
-            leaveBtn.setEnabled(false);
+            leaveBtn.setEnabled(true);
             usernameTxt.setEnabled(false);
         }
     }
