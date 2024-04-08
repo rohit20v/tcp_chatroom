@@ -12,7 +12,7 @@ potrà creare un nuovo gruppo, oppure unirsi a uno già esistente.
 
 ## Server
 Il server è responsabile della gestione delle connessioni dei client
-e della comunicazione all'interno dei gruppi, con la loro gestione e i comandi utilizzabili dal client.
+e della comunicazione all'interno dei gruppi.
 
 ## Utilizzo
 Compilare il codice sorgente del server in maniera tale da permettere la connessione dei client.
@@ -24,10 +24,10 @@ javac Server.java
 Avviare il server.
 
 ``` Java
-java Server
+java Server [numeroPorta]
 ```
 > [!tip]
-> Il server si metterà in ascolto sulla porta 5555 per le connessioni dei client.
+> Il server si metterà in ascolto ad esempio, sulla porta 5555 per le connessioni dei client.
 
 ## Funzionalità
 
@@ -70,7 +70,7 @@ flowchart TD
 4. Visualizzazione dei gruppi attivi.
 5. Cambio del nickname degli utenti.
 6. Visualizzazione utenti nel gruppo.
-7. Visualizzare immagini di gatti
+7. Visualizzazione immagini di gatti casuali, presi tramite API.
 8. Uscita dalla chat.
 
 
