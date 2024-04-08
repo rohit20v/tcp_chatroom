@@ -62,8 +62,9 @@ Eseguire la propria scelta e successivamente inserire un username per entrare de
 3. Creazione e unione a gruppi.
 4. Visualizzazione dei gruppi attivi.
 5. Cambio del nickname degli utenti.
-7. Visualizzazione utenti nel gruppo.
-6. Uscita dalla chat.
+6. Visualizzazione utenti nel gruppo.
+7. Visualizzare immagini di gatti
+8. Uscita dalla chat.
 
 
 > [!IMPORTANT]
