@@ -134,19 +134,20 @@ public class Server implements Runnable {
         }
 
         private void createGroup() throws IOException {
-            groupName = in.readLine();
+            //TODO check if the temp variable is necessary
+            String groupNameTemp = in.readLine();
             boolean exist = false;
             for (ServerGroup g : groups) {
-                if (g.getGroupName().equalsIgnoreCase(groupName)) {
+                if (g.getGroupName().equalsIgnoreCase(groupNameTemp)) {
                     exist = true;
                     System.out.println("Grouppo trovato");
                     break;
                 }
             }
-            String password = in.readLine();
-            boolean privacy = Boolean.parseBoolean(in.readLine());
+                groupName=groupNameTemp;
+                String password = in.readLine();
+                boolean privacy = Boolean.parseBoolean(in.readLine());
             if (!exist) {
-//                System.out.println(privacy);
                 group = new ServerGroup(groupName, password, privacy);
                 out.println("Gruppo creato con successo!");
                 System.out.println("Non esiste");
@@ -187,7 +188,7 @@ public class Server implements Runnable {
                     out.println("Unione al gruppo avvenuta con successo!");
 
                 } else {
-                    nickname = "Unknown User";
+                    //nickname = "Unknown User";
                     out.println("Password errata. Riprova premendo il pulsante LEAVE!");
                 }
             }
@@ -224,7 +225,9 @@ public class Server implements Runnable {
                         }
                     } else if (message.startsWith("/quit")) {
                         shutdown();
+                        if(nickname != null){
                         broadcastToGroup(groupName, nickname + " ha lasciato il gruppo");
+                        }
 
                     } else if (message.startsWith("/info")) {
                         showGroupParticipants(groupName);
@@ -239,13 +242,10 @@ public class Server implements Runnable {
 
         private void askUsername() throws IOException {
             String tempNick = in.readLine();
-            if (tempNick.equalsIgnoreCase("/quit") || tempNick.equalsIgnoreCase("/nome") || tempNick.equalsIgnoreCase("/info")) {
-                out.println("Nickaname non valido");
-            } else {
+
                 nickname = tempNick;
                 System.out.println(nickname + " Connesso!");
                 broadcastToGroup(groupName, nickname + " è entrato nel gruppo");
-            }
         }
 
         // Metodo per mostrare i partecipanti al gruppo
