@@ -142,8 +142,13 @@ public class Client_GUI extends JFrame {
             username = usernameTxt.getText();
             username = username.replace(" ", "_").trim();
             if (!username.isEmpty()) {
-                if (username.length() > 16)
-                    JOptionPane.showMessageDialog(null, "Username too long", "", JOptionPane.ERROR_MESSAGE);
+
+                if (username.length() > 16){
+                    JOptionPane.showMessageDialog(null, "Username too long", "Invalid Username", JOptionPane.ERROR_MESSAGE);
+                }
+                else if(username.contains("/")){
+                    JOptionPane.showMessageDialog(null, "Username mustn't contain '/'", "Invalid Username", JOptionPane.ERROR_MESSAGE);
+                }
                 else {
                     System.out.println(username);
                     writer.println(username.toUpperCase());
