@@ -18,16 +18,20 @@ public class Server implements Runnable {
     private ArrayList<ServerGroup> groups = new ArrayList<>();
     private ServerGroup group;
 
-    public Server() {
+    public Server(int port) {
         connections = new ArrayList<>();
         group = new ServerGroup();
         done = false;
+        try {
+            this.server = new ServerSocket(port);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
     public void run() {
         try {
-            this.server = new ServerSocket(5555);
             pool = Executors.newCachedThreadPool();
             while (!done) {
                 Socket client = server.accept();
@@ -76,14 +80,14 @@ public class Server implements Runnable {
             for (ConnectionHandler ch : connections) {
                 ch.shutdown();
             }
-        } catch (IOException e) {
-            // ignore it
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
         }
     }
 
     public void showActiveGroups(PrintWriter writer) {
         if (groups.isEmpty()) {
-            writer.println("Non ci sono gruppi attivi al momento");
+            writer.println("Non ci sono gruppi attivi al momento.");
         } else {
             int i = 0;
             for (ServerGroup g : groups) {
@@ -144,9 +148,9 @@ public class Server implements Runnable {
                     break;
                 }
             }
-                groupName=groupNameTemp;
-                String password = in.readLine();
-                boolean privacy = Boolean.parseBoolean(in.readLine());
+            groupName = groupNameTemp;
+            String password = in.readLine();
+            boolean privacy = Boolean.parseBoolean(in.readLine());
             if (!exist) {
                 group = new ServerGroup(groupName, password, privacy);
                 out.println("Gruppo creato con successo!");
@@ -179,7 +183,7 @@ public class Server implements Runnable {
             }
             if (!Isthere) {
                 out.println("Il groupp con questo nome non esiste. Riprova con LEAVE!");
-            }else{
+            } else {
                 String password = in.readLine();
                 if (Objects.requireNonNull(tempGroup).getGroupPassword().equalsIgnoreCase(password)) {
                     System.out.println("Password trovato");
@@ -225,8 +229,8 @@ public class Server implements Runnable {
                         }
                     } else if (message.startsWith("/quit")) {
                         shutdown();
-                        if(nickname != null){
-                        broadcastToGroup(groupName, nickname + " ha lasciato il gruppo");
+                        if (nickname != null) {
+                            broadcastToGroup(groupName, nickname + " ha lasciato il gruppo");
                         }
 
                     } else if (message.startsWith("/info")) {
@@ -243,9 +247,9 @@ public class Server implements Runnable {
         private void askUsername() throws IOException {
             String tempNick = in.readLine();
 
-                nickname = tempNick;
-                System.out.println(nickname + " Connesso!");
-                broadcastToGroup(groupName, nickname + " è entrato nel gruppo");
+            nickname = tempNick;
+            System.out.println(nickname + " Connesso!");
+            broadcastToGroup(groupName, nickname + " è entrato nel gruppo");
         }
 
         // Metodo per mostrare i partecipanti al gruppo
@@ -282,7 +286,8 @@ public class Server implements Runnable {
     }
 
     public static void main(String[] args) {
-        Server server = new Server();
+        int port = Integer.parseInt(args[0]);
+        Server server = new Server(port);
         new Thread(server).start();
     }
 }
