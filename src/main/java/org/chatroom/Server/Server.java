@@ -136,7 +136,6 @@ public class Server implements Runnable {
         }
 
         private void createGroup() throws IOException {
-            //TODO check if the temp variable is necessary
             String groupNameTemp = in.readLine();
             boolean exist = false;
             for (ServerGroup g : groups) {
