@@ -42,40 +42,42 @@ public class Client_GUI extends JFrame {
     private Socket socket;
     private String username;
     private AtomicReference<String> receivedMessage = new AtomicReference<>("");
+    private String host;
+    private int port;
 
-    public Client_GUI() {
-        SwingUtilities.invokeLater(() -> {
-            setContentPane(Form);
-            swingStyle();
+    public Client_GUI(String host, int port) {
+        this.host = host;
+        this.port = port;
+        setContentPane(Form);
+        swingStyle();
 
-            msgArea.setEditable(false);
-            msgTxt.setEnabled(false);
-            sendBtn.setEnabled(false);
-            usernameTxt.setEnabled(false);
-            usernameBtn.setEnabled(false);
-            renameTxt.setEnabled(false);
-            renameBtn.setEnabled(false);
-            leaveBtn.setEnabled(false);
-            pvtBtn.setEnabled(false);
+        msgArea.setEditable(false);
+        msgTxt.setEnabled(false);
+        sendBtn.setEnabled(false);
+        usernameTxt.setEnabled(false);
+        usernameBtn.setEnabled(false);
+        renameTxt.setEnabled(false);
+        renameBtn.setEnabled(false);
+        leaveBtn.setEnabled(false);
+        pvtBtn.setEnabled(false);
 
-            setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-            setSize(888, 690);
-            setVisible(true);
-            setLocationRelativeTo(null);
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setSize(888, 690);
+        setVisible(true);
+        setLocationRelativeTo(null);
 
-            startCreatingGroup();
-            startJoiningGroup();
+        startCreatingGroup();
+        startJoiningGroup();
 
-            showGroups();
+        showGroups();
 
-            setUsername();
+        setUsername();
 
-            sendMsg();
+        sendMsg();
 
-            leaveChat();
+        leaveBtn();
 
-            renameBtn();
-        });
+        renameBtn();
 
         new Thread(this::createSocket).start();
 
@@ -84,19 +86,17 @@ public class Client_GUI extends JFrame {
     private void createSocket() {
         do {
             try {
-                this.socket = new Socket("localhost", 5555);
-                System.out.println("Server up");
+                this.socket = new Socket(host, port);
                 updateStatus(Color.decode("#3a86ff"), "Connected");
 
                 createReader_Writer();
                 readMsg();
                 break;
             } catch (Exception e) {
-                System.out.println("Server down");
-                updateStatus(Color.red, "Server is down");
+                updateStatus(Color.red, "Server Offline");
                 shutdownClient();
                 try {
-                    Thread.sleep(2000);
+                    Thread.sleep(3000);
                 } catch (InterruptedException ex) {
                     //ignore
                 }
@@ -120,7 +120,6 @@ public class Client_GUI extends JFrame {
         SwingUtilities.invokeLater(() -> {
             this.statusLbl.setForeground(green);
             this.statusLbl.setText(Connected);
-
         });
     }
 
@@ -140,16 +139,13 @@ public class Client_GUI extends JFrame {
     private void setUsername() {
         usernameBtn.addActionListener(e -> {
             username = usernameTxt.getText();
-            username = username.replace(" ", "_").trim();
+            username = username.trim().replace(" ", "_");
             if (!username.isEmpty()) {
-
-                if (username.length() > 16){
+                if (username.length() > 16) {
                     JOptionPane.showMessageDialog(null, "Username too long", "Invalid Username", JOptionPane.ERROR_MESSAGE);
-                }
-                else if(username.contains("/")){
+                } else if (username.contains("/")) {
                     JOptionPane.showMessageDialog(null, "Username mustn't contain '/'", "Invalid Username", JOptionPane.ERROR_MESSAGE);
-                }
-                else {
+                } else {
                     System.out.println(username);
                     writer.println(username.toUpperCase());
                     this.msgTxt.setEnabled(true);
@@ -175,8 +171,9 @@ public class Client_GUI extends JFrame {
                         JOptionPane.showMessageDialog(null, resizedIcon, "", JOptionPane.PLAIN_MESSAGE);
                     } catch (Exception ex) {
                         JOptionPane.showMessageDialog(null, "Error fetching data from the CATAAS API", "API Error", JOptionPane.ERROR_MESSAGE);
-
                     }
+                } else if (msgToSend.startsWith("/quit")) {
+                    leaveChat();
                 } else {
                     writer.println(msgToSend);
                 }
@@ -197,7 +194,8 @@ public class Client_GUI extends JFrame {
                 }
             }
         } catch (Exception e) {
-            updateStatus(Color.red, "Server is down");
+//            updateStatus(Color.red, "Server is down");
+            createSocket();
         }
     }
 
@@ -225,7 +223,7 @@ public class Client_GUI extends JFrame {
             if (createBtn.isEnabled()) {
                 if (!grpCodeTxt.getText().isEmpty() && !grpNameTxt.getText().isEmpty()) {
                     if (grpCodeTxt.getText().length() > 10 || grpNameTxt.getText().length() > 10)
-                        JOptionPane.showMessageDialog(null, "Group name and code mustn't be that long", "", JOptionPane.ERROR_MESSAGE);
+                        JOptionPane.showMessageDialog(null, "Group name and code mustn't be that long", "Input error", JOptionPane.ERROR_MESSAGE);
                     else {
                         createGroup();
                     }
@@ -325,18 +323,22 @@ public class Client_GUI extends JFrame {
         renameBtn.addActionListener(e -> {
             String newName = renameTxt.getText().trim();
             if (!newName.isEmpty()) {
-                writer.println("/nome " + newName);
+                writer.println("/nome " + newName.toUpperCase());
             }
             renameTxt.setText("");
         });
     }
 
-    private void leaveChat() {
+    private void leaveBtn() {
         leaveBtn.addActionListener(e -> {
-            this.writer.println("/quit");
-            dispose();
-            SwingUtilities.invokeLater(Client_GUI::new);
+            leaveChat();
         });
+    }
+
+    private void leaveChat() {
+        this.writer.println("/quit");
+        dispose();
+        SwingUtilities.invokeLater(() -> new Client_GUI(host, port));
     }
 
     private void buttonHoverFx() {
@@ -547,14 +549,15 @@ public class Client_GUI extends JFrame {
     }
 
     private void renderLogo() {
-        BufferedImage img = loadImage("src/main/resources/mt_room.png");
-        BufferedImage resizedImg = resizeImage(Objects.requireNonNull(img), 300, 150);
+        BufferedImage img = loadImage("/mt_room.png");
+        BufferedImage resizedImg = resizeImage(Objects.requireNonNull(img), 400, 200);
         displayImage(resizedImg);
     }
 
     public static BufferedImage loadImage(String filePath) {
         try {
-            return ImageIO.read(new java.io.File(filePath));
+            InputStream inputStream = Client_GUI.class.getResourceAsStream(filePath);
+            return ImageIO.read(Objects.requireNonNull(inputStream));
         } catch (Exception e) {
             System.out.println("Image not found: ");
             return null;
@@ -572,6 +575,7 @@ public class Client_GUI extends JFrame {
 
     public void displayImage(BufferedImage image) {
         ImageIcon icon = new ImageIcon(image);
+        setIconImage(image);
         gc_name.setIcon(icon);
     }
 
