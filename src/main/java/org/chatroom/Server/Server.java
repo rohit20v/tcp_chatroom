@@ -91,7 +91,6 @@ public class Server implements Runnable {
         } else {
             int i = 0;
             for (ServerGroup g : groups) {
-                System.out.println(g);
                 i++;
                 if (g.isPrivacy()) {
                     writer.println(i + ") " + g.getGroupName() + " = " + "******" + "\n");
@@ -120,7 +119,6 @@ public class Server implements Runnable {
 
         private void handleGroupOptions() throws IOException {
             String choice = in.readLine();
-            System.out.println(choice);
             switch (choice) {
                 case "1":
                     createGroup();
@@ -144,7 +142,6 @@ public class Server implements Runnable {
             for (ServerGroup g : groups) {
                 if (g.getGroupName().equalsIgnoreCase(groupNameTemp)) {
                     exist = true;
-                    System.out.println("Grouppo trovato");
                     break;
                 }
             }
@@ -154,7 +151,6 @@ public class Server implements Runnable {
             if (!exist) {
                 group = new ServerGroup(groupName, password, privacy);
                 out.println("Gruppo creato con successo!");
-                System.out.println("Non esiste");
                 askUsername();
                 group.setClients(this);
                 groups.add(group);
@@ -186,7 +182,6 @@ public class Server implements Runnable {
             } else {
                 String password = in.readLine();
                 if (Objects.requireNonNull(tempGroup).getGroupPassword().equalsIgnoreCase(password)) {
-                    System.out.println("Password trovato");
                     askUsername();
                     tempGroup.setClients(this);
                     out.println("Unione al gruppo avvenuta con successo!");
@@ -248,7 +243,7 @@ public class Server implements Runnable {
             String tempNick = in.readLine();
 
             nickname = tempNick;
-            System.out.println(nickname + " Connesso!");
+            System.out.println(nickname + " Connected!");
             broadcastToGroup(groupName, nickname + " è entrato nel gruppo");
         }
 
@@ -278,7 +273,6 @@ public class Server implements Runnable {
                 }
                 groups.removeIf(g -> g.getClients().isEmpty());
 
-                System.out.println("group removed");
             } catch (IOException e) {
                 System.out.println("Error removing client");
             }
@@ -286,8 +280,10 @@ public class Server implements Runnable {
     }
 
     public static void main(String[] args) {
-        int port = Integer.parseInt(args[0]);
-        Server server = new Server(port);
-        new Thread(server).start();
+        if (args.length == 1) {
+            Server server = new Server(Integer.parseInt(args[0]));
+            new Thread(server).start();
+        }else
+            System.out.println("Port number missing!");
     }
 }
